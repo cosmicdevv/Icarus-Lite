@@ -238,6 +238,7 @@ def handleManualCertificates():
 # Below is a function that clears the console
 clear = lambda: os.system("cls") if os.name == "nt" else os.system("clear")
 
+os.system("Icarus Lite")
 colorprint("Icarus Lite v1.0", "blue")
 colorprint("Written by cosmicdevv", "blue")
 colorprint("Checking installation...", "blue")
