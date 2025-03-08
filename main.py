@@ -311,7 +311,7 @@ else: # If they selected to automatically download certs
     colorprint("Continuing in 5 seconds...", "green")
     time.sleep(5)
 clear()
-port = 8080
+port = 8126
 proxy_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 proxy_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 proxy_socket.bind(("0.0.0.0", port))
