@@ -185,9 +185,6 @@ def handle_client(client_socket, address):
         # Same as .pipe() in NodeJS but we have to do it a bit differently.
         try:
             pipe = tunnel_traffic(client_socket, server_socket)
-            # If tunnel closed on first packet
-            if not pipe:
-                colorprint("ERROR: The connection may have been rejected.", "red")
         except Exception as e:
             colorprint(f"ERROR: {e}\nUnknown failure tunneling traffic.", "red")
     except Exception as e:
