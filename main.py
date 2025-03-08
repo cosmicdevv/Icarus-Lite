@@ -219,12 +219,31 @@ def tunnel_traffic(client_socket, server_socket):
     client_socket.close()
     server_socket.close()
 
+def handleManualCertificates():
+    messageDisplayed = False
+    while True:
+        if os.path.exists("IcarusLite/manualcerts/m.google.com.key") and os.path.exists(f"IcarusLite/manualcerts/m.google.com.key"):
+            colorprint("Manual certificates found. Using manual certificates for Icarus Lite.", "green")
+            # Set the certificate paths to the manualcerts path
+            certPaths["key"] = "IcarusLite/manualcerts/m.google.com.key"
+            certPaths["pem"] = "IcarusLite/manualcerts/m.google.com.pem"
+            break
+        # If the user doesn't have certs in manualcerts on first check, prompt them to put them in.
+        if messageDisplayed == False:
+            colorprint("Please manually download the certificates and place them in:\nIcarusLite/manualcerts/\nWaiting for certificates...", "blue")
+            messageDisplayed = True # Ensure the message isn't displayed every loop iteration
+        # small delay
+        time.sleep(1)
+
+# Below is a function that clears the console
+clear = lambda: os.system("cls") if os.name == "nt" else os.system("clear")
+
 colorprint("Icarus Lite v1.0", "blue")
 colorprint("Written by cosmicdevv", "blue")
 colorprint("Checking installation...", "blue")
 # Check if the Icarus folder exists
 firstTime = False
-if not os.path.exists("Icarus Lite"):
+if not os.path.exists("IcarusLite"):
     firstTime = True
     colorprint("! WARNING !\nIcarus Lite is not set up in the local directory. Do you want to automatically set up? (Y/N)", "blue")
     # Ask the user if they want to create the Icarus folder, loop to ensure valid input
@@ -237,58 +256,61 @@ if not os.path.exists("Icarus Lite"):
             exit()
     # If they selected yes, create necessary folders
     colorprint("Creating install folder...", "blue")
-    os.mkdir("Icarus Lite")
+    os.mkdir("IcarusLite")
     colorprint("Creating certificate folder...", "blue")
-    os.mkdir("Icarus Lite/autocerts")
+    os.mkdir("IcarusLite/autocerts")
     colorprint("Creating manual certificate folder...", "blue")
-    os.mkdir("Icarus Lite/manualcerts")
-colorprint("Downloading latest Icarus SSL certificates...", "blue")
-success = True # If a download fails, this gets set to false
-# Loop through all the necessary SSL certificates, where their filename is the key and the download url is the value
-for sslCert in sslCerts:
-    try:
-        # Try to download the certificate from the url and place it in the autocerts folder
-        response = requests.get(sslCerts[sslCert])
-        with open(f"Icarus Lite/autocerts/{sslCert}", 'wb') as file:
-            file.write(response.content)
-        if firstTime:
-            # Create a backup copy of the certificate in the manualcerts folder
-            shutil.copy(f"Icarus Lite/autocerts/{sslCert}", f"Icarus Lite/manualcerts/{sslCert}")
-        colorprint(f"Latest '{sslCert}' downloaded.", "green")
-    except Exception as e:
-        # If the download fails
-        success = False
-        colorprint(f"'{sslCert}' failed to download.", "red")
-# If not all downloads were successful, run this
-if not success:
-    colorprint("One or more certificates could not be downloaded. Checking ability to run...", "red")
-    # Check if the required certs were downloaded (in case we put other files in the download list for some reason)
-    if not os.path.exists("Icarus Lite/autocerts/m.google.com.key") or not os.path.exists(f"Icarus Lite/autocerts/m.google.com.pem"):
-        colorprint("Icarus Lite is unable to run from auto-downloaded certificates.", "blue")
-        messageDisplayed = False
-        # Loop until certificates are manually added to the manualcerts folder (we use a different folder for manual certs so if a user puts certs in a folder, they aren't overwritten by the autodownloads unless it's a fresh setup)
-        while True:
-            if os.path.exists("Icarus Lite/manualcerts/m.google.com.key") and os.path.exists(f"Icarus Lite/manualcerts/m.google.com.key"):
-                colorprint("Manual certificates found. Using manual certificates for Icarus Lite.", "green")
-                # Set the certificate paths to the manualcerts path
-                certPaths["key"] = "Icarus Lite/manualcerts/m.google.com.key"
-                certPaths["pem"] = "Icarus Lite/manualcerts/m.google.com.pem"
-                break
-            # If the user doesn't have certs in manualcerts on first check, prompt them to put them in.
-            if messageDisplayed == False:
-                colorprint("Please manually download the certificates and place them in:\nIcarus Lite/manualcerts/\nWaiting for certificates...", "blue")
-                messageDisplayed = True # Ensure the message isn't displayed every loop iteration
-            # small delay
-            time.sleep(1)
+    os.mkdir("IcarusLite/manualcerts")
+clear()
+# Give the user the option to use manual certs or automatically downloaded certs
+colorprint("CERTIFICATE OPTIONS:\n\n1. Use manual (local) certificates\n2. Automatically download latest certificates\n\nEnter 1/2 for choice.", "blue")
+# Let the user choose
+while True:
+    choice = input().lower()
+    if choice in ["1", "one"]:
+        choice = 1 # Make sure choice is an integer
+        break
+    if choice in ["2", "two"]:
+        choice = 2 # Make sure choice is an integer
+        break
+if choice == 1: # If they selected to use manual certificates
+    handleManualCertificates()
+else: # If they selected to automatically download certs
+    colorprint("Downloading latest Icarus SSL certificates...", "blue")
+    success = True # If a download fails, this gets set to false
+    # Loop through all the necessary SSL certificates, where their filename is the key and the download url is the value
+    for sslCert in sslCerts:
+        try:
+            # Try to download the certificate from the url and place it in the autocerts folder
+            response = requests.get(sslCerts[sslCert])
+            with open(f"IcarusLite/autocerts/{sslCert}", 'wb') as file:
+                file.write(response.content)
+            if firstTime:
+                # Create a backup copy of the certificate in the manualcerts folder
+                shutil.copy(f"IcarusLite/autocerts/{sslCert}", f"IcarusLite/manualcerts/{sslCert}")
+            colorprint(f"Latest '{sslCert}' downloaded.", "green")
+        except Exception as e:
+            # If the download fails
+            success = False
+            colorprint(f"'{sslCert}' failed to download.", "red")
+    # If not all downloads were successful, run this
+    if not success:
+        colorprint("One or more certificates could not be downloaded. Checking ability to run...", "red")
+        # Check if the required certs were downloaded (in case we put other files in the download list for some reason)
+        if not os.path.exists("IcarusLite/autocerts/m.google.com.key") or not os.path.exists(f"IcarusLite/autocerts/m.google.com.pem"):
+            colorprint("Icarus Lite is unable to run from auto-downloaded certificates.", "blue")
+            handleManualCertificates()
+        else:
+            # If the required certs were auto-downloaded, we'll use them
+            certPaths["key"] = "IcarusLite/autocerts/m.google.com.key"
+            certPaths["pem"] = "IcarusLite/autocerts/m.google.com.pem"
     else:
-        # If the required certs were auto-downloaded, we'll use them
-        certPaths["key"] = "Icarus Lite/autocerts/m.google.com.key"
-        certPaths["pem"] = "Icarus Lite/autocerts/m.google.com.pem"
-else:
-    # If all downloads were successful, we'll use the downloaded certs
-    certPaths["key"] = "Icarus Lite/autocerts/m.google.com.key"
-    certPaths["pem"] = "Icarus Lite/autocerts/m.google.com.pem"
-
+        # If all downloads were successful, we'll use the downloaded certs
+        certPaths["key"] = "IcarusLite/autocerts/m.google.com.key"
+        certPaths["pem"] = "IcarusLite/autocerts/m.google.com.pem"
+    colorprint("Continuing in 5 seconds...", "green")
+    time.sleep(5)
+clear()
 port = 8080
 proxy_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 proxy_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -302,8 +324,10 @@ local_ip = s.getsockname()[0]
 s.close()
 
 # aaaaaaaaaaaaaaaaaaaaaa
-print("\n\n\n")
 colorprint(f"Icarus Lite is running on: {local_ip}:{port}", "blue")
+colorprint("Refer to the Icarus Lite GitHub repository for usage information.", "blue")
+colorprint("Requests will be logged below.", "blue")
+print("\n\n")
 while True:
     try:
         client_socket, client_address = proxy_socket.accept()
