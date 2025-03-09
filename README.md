@@ -61,16 +61,14 @@ For prebuilt shims, it is recommended to download them from the below servers:
 - [kxtz's download server](https://dl.kxtz.dev/)
 - [fanqyxl's download server](https://dl.fanqyxl.net/)
 
-## Certificates
+## SSL Certificates
 In order for the client (target ChromeOS device) to establish a proper connection to the MiniSever, we need an SSL certificate to establish the secure tunnel. If the SSL certificate is invalid, the target device will reject the connection (which in most cases will bring you to a "Cannot reach Google" screen). Icarus uses a custom CA (Certificate Authority) which isn't trusted to external devices, which also means any SSL certificates generated from our custom CA will also not be trusted to external devices. This causes most devices (including any ChromeOS devices) to reject the connection because of the untrusted CA.
 
 This is why a user must run an Icarus shim on a ChromeOS device prior to using the Icarus Lite server for unenrollment; in the simplest terms, the shim makes the device trust the CA so that way the device won't refuse the connection to the MiniServer.
 
 When a shim has been built using a different CA than the SSL certificates, the target device will still reject the connection. This is why if constantly getting a "Can't reach Google" screen, users should consider building their own shim and SSL certificates.
 
-Refer to [Generating SSL certificates](https://github.com/cosmicdevv/Icarus-Lite?tab=readme-ov-file#generating-ssl-certificates) for information on generating SSL certificates using Icarus Lite.
-
-## Generating SSL certificates
+### Generating SSL certificates
 Icarus Lite has the ability to automatically generate SSL certificates with a provided CA (Certificate Authority). The process is relatively simple:
 1. Generate your CA (you must have a key and pem) or use an [existing CA](https://git.kxtz.dev/kxtzownsu/Icarus-Lite).
 2. Put your CA (key and pem) into ``IcarusLite/manualcerts`` with the names ``myCA.pem`` and ``myCA.key``.
