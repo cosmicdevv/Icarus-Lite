@@ -44,8 +44,12 @@ Once Icarus Lite is running, usage is extremely simple. <b>Icarus Lite will atte
 <details>
   <summary>Device still enrolling/getting "Can't reach Google"?</summary>
   
-  - Make sure that Icarus Lite is recieving and handling the ChromeOS device's requests; check the terminal/window where Icarus Lite is running for any output past "Icarus LITE is running on...". If nothing else has been output, it means Icarus Lite isn't recieving requests from the Chromebook and therefore is not handling them accordingly. In this case, re-run the Icarus shim and ensure the target ChromeOS device and the device hosting the proxy are on the <b>SAME</b> WiFi network and the shim used on the target ChromeOS device was built with the same CA (Certificate Authority) used to generate the SSL certificates (if you're using a prebuilt shim and don't know what CA was used, consider building your own shim and SSL certificates if nothing else works).
-  - It is also important to note being above ChromeOS v130 will cause the target ChromeOS device to reject the connection to the MiniServer, causing the "Can't reach Google" screen.
+  - Make sure that Icarus Lite is recieving and handling the ChromeOS device's requests; check the terminal/window where Icarus Lite is running for any output past "Icarus LITE is running on...". If nothing else has been output, it means Icarus Lite isn't recieving requests from the Chromebook and therefore is not handling them accordingly. In this case:
+  - Re-run the Icarus shim and ensure the target ChromeOS device and the device hosting the proxy are on the <b>SAME</b> WiFi network.
+  - Ensure the shim used on the target ChromeOS device was built with the same CA (Certificate Authority) used to generate the SSL certificates
+
+    - If you're using a prebuilt shim and don't know what CA was used, consider building your own shim and SSL certificates if nothing else works.
+  - It is also important to note being above ChromeOS v130 or below ChromeOS v125 will cause the target ChromeOS device to reject the connection to the MiniServer, causing the "Can't reach Google" screen.
 </details>
 
 ## Prebuilt Shim Downloads
