@@ -494,6 +494,8 @@ if isInvalid or isExpired:
                 noSupport = True
             else:
                 colorprint("Successfully regenerated SSL certificates.", "green")
+                certPaths["key"] = f"{installationFolder}/manualcerts/google.com.key"
+                certPaths["pem"] = f"{installationFolder}/manualcerts/google.com.pem"
             break
         if choice in ["n", "no"]:
             colorprint("! IMPORTANT !", "red")
