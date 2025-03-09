@@ -15,23 +15,131 @@ import re
 import http.server
 import urllib.parse
 import requests
+import OpenSSL.crypto
+from cryptography import x509
+from cryptography.x509.oid import NameOID, ExtensionOID
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from datetime import datetime, timezone, timedelta
 from dmbackend import device_management_pb2
 
+version = "1.1.0"
 pInitial = 3001 # The port that MiniServers will start up from.
+latestVersionUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/version.txt" # URL of the file where the latest version number is stored
+scriptUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/main.py" # URL of the file where the latest script version is stored
 sslCerts = {
-    "m.google.com.key": "https://git.kxtz.dev/kxtzownsu/httpmitm/raw/branch/main/configs/m.google.com/public/google.com.key",
-    "m.google.com.pem": "https://git.kxtz.dev/kxtzownsu/httpmitm/raw/branch/main/configs/m.google.com/public/google.com.pem"
+    "google.com.key": "https://git.kxtz.dev/kxtzownsu/Icarus-Lite/raw/branch/main/certs/google.com.key",
+    "google.com.pem": "https://git.kxtz.dev/kxtzownsu/Icarus-Lite/raw/branch/main/certs/google.com.pem",
+    "myCA.pem": "https://git.kxtz.dev/kxtzownsu/Icarus-Lite/raw/branch/main/myCA.pem",
+    "myCA.key": "https://git.kxtz.dev/kxtzownsu/Icarus-Lite/raw/branch/main/myCA.key"
 } # Stores names and links of certificates to download
 certPaths = {} # Stores paths of certificates on the local filesystem
+installationFolder = "IcarusLite" # Folder name that stores certificates
+noSupport = False # If user is running with invalid certs, makes the console print extra characters so if I get an Issue on the GitHub and see the characters it means they're using invalid certs and it's on them
 
 # Custom function to print text with color to enhance user experience while reducing dependies (such as Colorama) that are needed
 def colorprint(text, color):
+    # If noSupport is True, we'll append [NS] to the beginning of every printed line.
     if color == "blue":
-        print(f"\033[34m{text}\033[0m")
+        print(f"\033[34m{text if not noSupport else "[NS] " + text}\033[0m")
     elif color == "green":
-        print(f"\033[32m{text}\033[0m")
+        print(f"\033[32m{text if not noSupport else "[NS] " + text}\033[0m")
     elif color == "red":
-        print(f"\033[31m{text}\033[0m")
+        print(f"\033[31m{text if not noSupport else "[NS] " + text}\033[0m")
+
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+from datetime import datetime, timedelta, timezone
+
+def generateCerts():
+    # Load CA certificate and key using cryptography
+    with open(certPaths["caPem"], "rb") as f:
+        ca_cert = x509.load_pem_x509_certificate(f.read())
+    with open(certPaths["caKey"], "rb") as f:
+        ca_key = serialization.load_pem_private_key(f.read(), password=None)
+    # Verify that the CA certificate and key match by comparing their public keys
+    ca_cert_pub = ca_cert.public_key()
+    ca_key_pub = ca_key.public_key()
+    ca_cert_pub_bytes = ca_cert_pub.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    ca_key_pub_bytes = ca_key_pub.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    if ca_cert_pub_bytes != ca_key_pub_bytes:
+        return -1  # -1 return code means CA's don't match
+    # Generate a new private key for google.com
+    key = rsa.generate_private_key(public_exponent=65537, key_size=4096)
+    # Build subject for the new certificate
+    subject = x509.Name([
+        x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "PRIVATE"),
+        x509.NameAttribute(NameOID.LOCALITY_NAME, "PRIVATE"),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Success!"),
+        x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, "Success"),
+        x509.NameAttribute(NameOID.COMMON_NAME, "*.google.com"),
+    ])
+    # Set the issuer from the CA certificate's subject
+    issuer = ca_cert.subject
+    # Build the certificate with timezone-aware validity dates
+    cert_builder = x509.CertificateBuilder()\
+        .subject_name(subject)\
+        .issuer_name(issuer)\
+        .public_key(key.public_key())\
+        .serial_number(1000)\
+        .not_valid_before(datetime.now(timezone.utc))\
+        .not_valid_after(datetime.now(timezone.utc) + timedelta(days=365))
+    # Create AuthorityKeyIdentifier extension using the CA's public key info
+    ca_subject_key_identifier = x509.SubjectKeyIdentifier.from_public_key(ca_cert_pub)
+    authority_key_identifier = x509.AuthorityKeyIdentifier(
+        key_identifier=ca_subject_key_identifier.digest,
+        authority_cert_issuer=[x509.DirectoryName(issuer)],
+        authority_cert_serial_number=ca_cert.serial_number
+    )
+    cert_builder = cert_builder.add_extension(authority_key_identifier, critical=False)
+    # Add BasicConstraints extension (indicating this cert is not a CA)
+    cert_builder = cert_builder.add_extension(
+        x509.BasicConstraints(ca=False, path_length=None), critical=True
+    )
+    # Add KeyUsage extension
+    cert_builder = cert_builder.add_extension(
+        x509.KeyUsage(
+            digital_signature=True,
+            content_commitment=True,
+            key_encipherment=True,
+            data_encipherment=True,
+            key_agreement=False,
+            key_cert_sign=False,
+            crl_sign=False,
+            encipher_only=False,
+            decipher_only=False
+        ),
+        critical=True
+    )
+    # Add SubjectAlternativeName extension for the wildcard domain
+    cert_builder = cert_builder.add_extension(
+        x509.SubjectAlternativeName([x509.DNSName("*.google.com")]),
+        critical=False
+    )
+    # Sign the certificate using the CA's private key
+    cert = cert_builder.sign(private_key=ca_key, algorithm=hashes.SHA256())
+    # Save the new certificate and key
+    try:
+        with open(f"{installationFolder}/manualcerts/google.com.pem", "wb") as f:
+            f.write(cert.public_bytes(serialization.Encoding.PEM))
+        with open(f"{installationFolder}/manualcerts/google.com.key", "wb") as f:
+            f.write(key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.TraditionalOpenSSL,
+                encryption_algorithm=serialization.NoEncryption()
+            ))
+    except Exception:
+        return -2  # -2 return code means error saving new certificates
+    return 0  # 0 return code means success
 
 # unlike normal icarus which calls other files and shit to create a miniserver, we can do it easily in icarus Lite!!!!!
 class MiniServerHandler(http.server.SimpleHTTPRequestHandler):
@@ -102,7 +210,6 @@ class MiniServer:
         self.httpd.socket = context.wrap_socket(self.httpd.socket, server_side=True)
         pInitial += 1
         threading.Thread(target=self.httpd.serve_forever).start() # Start the server in a separate thread so it doesn't block the main thread.
-        
 
 def handle_client(client_socket, address):
     # Initial request buffer
@@ -168,7 +275,7 @@ def handle_client(client_socket, address):
             if not pipe:
                 colorprint("ERROR: The client may have rejected the connection. This is usually an SSL issue.", "red")
         except Exception as e:
-            colorprint(f"ERROR: {e}\nThe client may have rejected the connection.", "red")
+            colorprint(f"ERROR on request: {str(host)}\nThe client may have rejected the connection.", "red")
             colorprint("Have you ran the Icarus shim on the target Chromebook?", "blue")
         return
     # The below only runs if the host isn't filtered (or it is filtered but not a TLS request, in which case we won't intercept it)
@@ -186,7 +293,7 @@ def handle_client(client_socket, address):
         try:
             pipe = tunnel_traffic(client_socket, server_socket)
         except Exception as e:
-            colorprint(f"ERROR: {e}\nUnknown failure tunneling traffic.", "red")
+            colorprint(f"ERROR on request: {str(host)}\nUnknown failure tunneling traffic.", "red")
     except Exception as e:
         colorprint(f"Error connecting to {host}:{port} - {e}", "red")
         client_socket.close()
@@ -219,15 +326,29 @@ def tunnel_traffic(client_socket, server_socket):
 def handleManualCertificates():
     messageDisplayed = False
     while True:
-        if os.path.exists("IcarusLite/manualcerts/m.google.com.key") and os.path.exists(f"IcarusLite/manualcerts/m.google.com.key"):
+        googleKey = os.path.exists(f"{installationFolder}/manualcerts/google.com.key")
+        googlePem = os.path.exists(f"{installationFolder}/manualcerts/google.com.pem")
+        caKey = os.path.exists(f"{installationFolder}/manualcerts/myCA.key")
+        caPem = os.path.exists(f"{installationFolder}/manualcerts/myCA.pem")
+        if googleKey and googlePem and caKey and caPem:
             colorprint("Manual certificates found. Using manual certificates for Icarus Lite.", "green")
             # Set the certificate paths to the manualcerts path
-            certPaths["key"] = "IcarusLite/manualcerts/m.google.com.key"
-            certPaths["pem"] = "IcarusLite/manualcerts/m.google.com.pem"
+            certPaths["key"] = f"{installationFolder}/manualcerts/google.com.key"
+            certPaths["pem"] = f"{installationFolder}/manualcerts/google.com.pem"
+            certPaths["caKey"] = f"{installationFolder}/manualcerts/myCA.key"
+            certPaths["caPem"] = f"{installationFolder}/manualcerts/myCA.pem"
             break
         # If the user doesn't have certs in manualcerts on first check, prompt them to put them in.
         if messageDisplayed == False:
-            colorprint("Please manually download the certificates and place them in:\nIcarusLite/manualcerts/\nWaiting for certificates...", "blue")
+            colorprint(f"""Please manually download the following certificates:
+                       - google.com.key 
+                       - google.com.pem
+                       - myCA.key
+                       - myCA.pem
+                       Place them in:
+                       {installationFolder}/manualcerts/
+                       Waiting for certificates..."""
+                       , "blue")
             messageDisplayed = True # Ensure the message isn't displayed every loop iteration
         # small delay
         time.sleep(1)
@@ -236,12 +357,53 @@ def handleManualCertificates():
 clear = lambda: os.system("cls") if os.name == "nt" else os.system("clear")
 
 os.system("title Icarus Lite")
-colorprint("Icarus Lite v1.0", "blue")
+colorprint(f"Icarus Lite v{version}", "blue")
 colorprint("Written by cosmicdevv", "blue")
+colorprint("Checking for updates...", "blue")
+checked = True
+try:
+    response = requests.get(latestVersionUrl).text
+except Exception as e:
+    checked = False # Ensure it doesn't say "No updates found" later, and only prints that it couldn't check for updates
+    response = version # Set the latest version to the current version.
+    colorprint(f"Could not check for latest updates. Icarus Lite will continue running normally. {e}", "red")
+
+v = tuple(map(int, version.split('.'))) # Convert current script version to a tuple
+lv = tuple(map(int, response.split('.'))) # Convert latest version to a tuple
+# Check if latest version is more than current version
+if lv > v:
+    colorprint(f"New script update found! Latest version: v{response}", "green")
+    colorprint("Do you want to automatically update? (Y/N)", "blue")
+    while True:
+        choice = input().lower()
+        if choice in ["y", "yes"]:
+            newFile = requests.get(scriptUrl)
+            # If the retrieval was successful
+            if newFile.status_code == 200:
+                # Overwrite the script with the latest script version
+                with open(sys.argv[0], "wb") as f:
+                    f.write(newFile.content)
+                colorprint("Script updated successfully! Restarting...", "green")
+                # Restart the script
+                os.execv(sys.argv[0], sys.argv)
+            else: # Script wasn't downloaded successfully
+                print("Failed to download latest update.", response.status_code)
+                colorprint("! IMPORANT !", "red")
+                colorprint("Support will not be given to users running outdated versions.", "red")
+                noSupport = True
+        elif choice in ["n", "no"]: # They chose not to update
+            colorprint("Icarus Lite will not update and will run on installed version.", "blue")
+            colorprint("! IMPORANT !", "red")
+            colorprint("Support will not be given to users running outdated versions.", "red")
+            noSupport = True
+        break
+else:
+    if checked: # If the latest version was successfully retrieved
+        colorprint(f"No updates found. Latest version: v{version}", "blue")
 colorprint("Checking installation...", "blue")
 # Check if the Icarus folder exists
 firstTime = False
-if not os.path.exists("IcarusLite"):
+if not os.path.exists(installationFolder) or not os.path.exists(f"{installationFolder}/autocerts") or not os.path.exists(f"{installationFolder}/manualcerts"):
     firstTime = True
     colorprint("! WARNING !\nIcarus Lite is not set up in the local directory. Do you want to automatically set up? (Y/N)", "blue")
     # Ask the user if they want to create the Icarus folder, loop to ensure valid input
@@ -254,11 +416,15 @@ if not os.path.exists("IcarusLite"):
             exit()
     # If they selected yes, create necessary folders
     colorprint("Creating install folder...", "blue")
-    os.mkdir("IcarusLite")
+    os.mkdir(installationFolder, exist_ok=True)
     colorprint("Creating certificate folder...", "blue")
-    os.mkdir("IcarusLite/autocerts")
+    os.mkdir(f"{installationFolder}/autocerts", exist_ok=True)
     colorprint("Creating manual certificate folder...", "blue")
-    os.mkdir("IcarusLite/manualcerts")
+    os.mkdir(f"{installationFolder}/manualcerts", exist_ok=True)
+else:
+    colorprint("Icarus Lite installation is valid.", "green")
+colorprint("Continuing in 5 seconds...", "green")
+time.sleep(5)
 clear()
 # Give the user the option to use manual certs or automatically downloaded certs
 colorprint("CERTIFICATE OPTIONS:\n\n1. Use manual (local) certificates\n2. Automatically download latest certificates\n\nEnter 1/2 for choice.", "blue")
@@ -281,11 +447,11 @@ else: # If they selected to automatically download certs
         try:
             # Try to download the certificate from the url and place it in the autocerts folder
             response = requests.get(sslCerts[sslCert])
-            with open(f"IcarusLite/autocerts/{sslCert}", 'wb') as file:
+            with open(f"{installationFolder}/autocerts/{sslCert}", 'wb') as file:
                 file.write(response.content)
             if firstTime:
                 # Create a backup copy of the certificate in the manualcerts folder
-                shutil.copy(f"IcarusLite/autocerts/{sslCert}", f"IcarusLite/manualcerts/{sslCert}")
+                shutil.copy(f"{installationFolder}/autocerts/{sslCert}", f"{installationFolder}/manualcerts/{sslCert}")
             colorprint(f"Latest '{sslCert}' downloaded.", "green")
         except Exception as e:
             # If the download fails
@@ -293,22 +459,54 @@ else: # If they selected to automatically download certs
             colorprint(f"'{sslCert}' failed to download.", "red")
     # If not all downloads were successful, run this
     if not success:
-        colorprint("One or more certificates could not be downloaded. Checking ability to run...", "red")
-        # Check if the required certs were downloaded (in case we put other files in the download list for some reason)
-        if not os.path.exists("IcarusLite/autocerts/m.google.com.key") or not os.path.exists(f"IcarusLite/autocerts/m.google.com.pem"):
-            colorprint("Icarus Lite is unable to run from auto-downloaded certificates.", "blue")
-            handleManualCertificates()
-        else:
-            # If the required certs were auto-downloaded, we'll use them
-            certPaths["key"] = "IcarusLite/autocerts/m.google.com.key"
-            certPaths["pem"] = "IcarusLite/autocerts/m.google.com.pem"
+        colorprint("One or more certificates could not be downloaded. Icarus Lite is unable to run from auto-downloaded certificates.", "red")
+        handleManualCertificates()
     else:
         # If all downloads were successful, we'll use the downloaded certs
-        certPaths["key"] = "IcarusLite/autocerts/m.google.com.key"
-        certPaths["pem"] = "IcarusLite/autocerts/m.google.com.pem"
-    colorprint("Continuing in 5 seconds...", "green")
-    time.sleep(5)
+        certPaths["key"] = f"{installationFolder}/autocerts/google.com.key"
+        certPaths["pem"] = f"{installationFolder}/autocerts/google.com.pem"
+        certPaths["caKey"] = f"{installationFolder}/autocerts/myCA.key"
+        certPaths["caPem"] = f"{installationFolder}/autocerts/myCA.pem"
+colorprint("Validating certificates...", "blue")
+with open(certPaths["caPem"], "rb") as f: # Load CA
+    ca = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, f.read())
+with open(certPaths["pem"], "rb") as f: # Load SSL certificate
+    cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, f.read())
+# Verify if the issuer of the certificate matches the CA
+isInvalid = cert.get_issuer().hash() != ca.get_subject().hash()
+# Check if the certificate is expired
+isExpired = datetime.strptime(cert.get_notAfter().decode("utf-8"), "%Y%m%d%H%M%SZ").replace(tzinfo=timezone.utc) < datetime.now(timezone.utc)
+if isInvalid or isExpired:
+    colorprint("Certificates are invalid and Icarus Lite will not work as expected.", "red")
+    colorprint("Do you want to build new certificates? (Y/N)", "blue")
+    while True:
+        choice = input().lower()
+        if choice in ["y", "yes"]:
+            certs = generateCerts()
+            if certs == -1: # -1 means CA's don't match
+                colorprint("Could not build new certificates because the CA key and pem do not match.")
+            if certs == -2: # -2 means failed to save certs
+                colorprint("Could not save new certificates.")
+            if certs != 0: # If the generation wasn't successful
+                colorprint("! IMPORTANT !", "red")
+                colorprint("Icarus Lite could not build new certificates and may not work as expected.", "blue")
+                colorprint("YOU WILL NOT RECIEVE SUPPORT WHILE RUNNING WITH INVALID CERTS!", "blue")
+                noSupport = True
+            else:
+                colorprint("Successfully regenerated SSL certificates.", "green")
+            break
+        if choice in ["n", "no"]:
+            colorprint("! IMPORTANT !", "red")
+            colorprint("Icarus Lite may not work as expected because the certificates are not correct and you have chosen not to regenerate the certificates.", "blue")
+            colorprint("YOU WILL NOT RECIEVE SUPPORT WHILE RUNNING WITH INVALID CERTS!", "blue")
+            noSupport = True
+            break
+else:
+    colorprint("Certificates are valid!", "green")
+colorprint("Continuing in 5 seconds...", "green")
+time.sleep(5)
 clear()
+
 port = 8126
 proxy_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 proxy_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -322,7 +520,7 @@ local_ip = s.getsockname()[0]
 s.close()
 
 # aaaaaaaaaaaaaaaaaaaaaa
-colorprint(f"Icarus Lite is running on: {local_ip}:{port}", "blue")
+colorprint(f"Icarus Lite is running on: {local_ip}:{port}", "green")
 colorprint("Refer to the Icarus Lite GitHub repository for usage information.", "blue")
 colorprint("Requests will be logged below.", "blue")
 print("\n\n")
