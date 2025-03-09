@@ -8,7 +8,7 @@ Icarus Lite is a lightweight and easy-to-use version of the ChromeOS unenrollmen
 - As of 3/9/25, Icarus Lite has been tested and confirmed to work. kxtz does NOT currently provide the CA used to generate downloaded shims; as such, please wait for kxtz to pre-build shims OR build your own CA, shims, and certificates to use with Icarus Lite.
 - Icarus AND Icarus Lite <b>only</b> work on ChromeOS versions below 130. If you are above v130, please downgrade to use Icarus/Icarus Lite.
 - Do not use any public Icarus proxies. Icarus can be used maliciously to remotely manage and track devices. Icarus Lite is intended to be simple to use, and self-hosting Icarus is heavily advised over using any public proxies.
-- Icarus Lite does <b>NOT</b> currently have functionality to build Icarus shims. Please download a prebuilt shim to use Icarus Lite, or refer an [Icarus fork](https://github.com/cosmicdevv/Icarus-Lite) for information on manually building shims.
+- Icarus Lite does <b>NOT</b> currently have functionality to build Icarus shims. Please download a prebuilt shim to use Icarus Lite, or refer an [Icarus fork](https://github.com/fanqyxl/icarus/tree/main) for information on manually building shims.
 
 ## Dependencies
 Icarus Lite, following its intended purpose of being lightweight and simple, only utilizes two external dependencies. Using the Windows pre-compiled .exe version of Icarus Lite, you will not need to worry about dependencies as they are packaged with the .exe. Icarus Lite uses:
