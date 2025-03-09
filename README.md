@@ -3,6 +3,8 @@ Icarus Lite is a lightweight and easy-to-use version of the ChromeOS unenrollmen
 <br>
 > Icarus Lite is based off the [original Icarus](https://github.com/MunyDev/icarus) code and works in the same way. Although the original Icarus is currently archived and no longer recieving support, Icarus Lite will be supported and updated.
 ## Warnings
+> [!IMPORTANT]
+> Icarus AND Icarus Lite <b>only</b> work on ChromeOS versions between v125 and v130. If you are above v130 or below v125, please downgrade (or update/upgrade) to a version Icarus/Icarus Lite will work with.
 > As of 3/8/25, Icarus Lite has been tested and confirmed to work. kxtz does NOT currently provide the CA used to generate downloaded shims; as such, please wait for kxtz to pre-build shims OR build your own CA, shims, and certificates to use with Icarus Lite.
 - Icarus AND Icarus Lite <b>only</b> work on ChromeOS versions below 130. If you are above v130, please downgrade to use Icarus/Icarus Lite.
 - Do not use any public Icarus proxies. Icarus can be used maliciously to remotely manage and track devices. Icarus Lite is intended to be simple to use, and self-hosting Icarus is heavily advised over using any public proxies.
@@ -27,6 +29,7 @@ If you are on Linux or Mac (or wish to run Icarus Lite from its source directly 
 6. Icarus Lite will attempt to automatically set up the required file structure and download the latest SSL certificates from kxtz's Icarus fork.
 <details>
   <summary>Icarus Lite failing to download certificates?</summary>
+  
   You will need to manually download the certificates from a proper source (recommended to use [kxtz's Icarus fork](https://git.kxtz.dev/kxtzownsu/httpmitm/src/branch/main/configs/m.google.com/public)) and place them into ``Icarus Lite/manualcerts``.
 </details>
 
@@ -40,6 +43,7 @@ Once Icarus Lite is running, usage is extremely simple. <b>Icarus Lite will atte
 6. Resume the ChromeOS setup process as normal and Icarus Lite should unenroll you.
 <details>
   <summary>Device still enrolling/getting "Can't reach Google"?</summary>
+  
   - Make sure that Icarus Lite is recieving and handling the ChromeOS device's requests; check the terminal/window where Icarus Lite is running for any output past "Icarus LITE is running on...". If nothing else has been output, it means Icarus Lite isn't recieving requests from the Chromebook and therefore is not handling them accordingly. In this case, re-run the Icarus shim and ensure the target ChromeOS device and the device hosting the proxy are on the <b>SAME</b> WiFi network and the shim used on the target ChromeOS device was built with the same CA (Certificate Authority) used to generate the SSL certificates (if you're using a prebuilt shim and don't know what CA was used, consider building your own shim and SSL certificates if nothing else works).
   - It is also important to note being above ChromeOS v130 will cause the target ChromeOS device to reject the connection to the MiniServer, causing the "Can't reach Google" screen.
 </details>
