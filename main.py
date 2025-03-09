@@ -399,7 +399,7 @@ if lv > v:
         break
 else:
     if checked: # If the latest version was successfully retrieved
-        colorprint(f"No updates found. Latest version: v{version}", "blue")
+        colorprint(f"No updates found. Latest version: v{version}", "green")
 colorprint("Checking installation...", "blue")
 # Check if the Icarus folder exists
 firstTime = False
