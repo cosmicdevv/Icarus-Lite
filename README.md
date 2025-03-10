@@ -82,6 +82,12 @@ Icarus Lite has the ability to automatically generate SSL certificates with a pr
 5. Icarus Lite will attempt to check the validity of the certificates, and will ask you if you want to generate new certificates.
 6. Select ``yes`` and wait for the SSL certificates to be generated.
 
+## Configuration
+Upon first setup, Icarus Lite will automatically create and set a ``config.json`` file which will store certain configuration options designed for debugging Icarus Lite. The file can be directly edited to store ``true`` or ``false`` values for each configuration option, and the config will be loaded the next time Icarus Lite starts.
+
+Current configuration options include:
+- ``bypassCA``: This option, if set to ``true``, will bypass Icarus Lite requiring a CA in addition to SSL certificates. It will also disable SSL certificate validation.
+- ``autoUpdate``: This option, if set to ``true``, will automatically update Icarus Lite when an update is detected and bypass asking the user yes or no.
 
 ## Future Updates
 This section contains planned updates to Icarus Lite to improve functionality.
