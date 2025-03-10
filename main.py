@@ -25,7 +25,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from datetime import datetime, timezone, timedelta
 from dmbackend import device_management_pb2
 
-version = "1.1.3"
+version = "1.1.4"
 pInitial = 3001 # The port that MiniServers will start up from.
 latestVersionUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/version.txt" # URL of the file where the latest version number is stored
 scriptUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/main.py" # URL of the file where the latest script version is stored
@@ -359,10 +359,10 @@ colorprint("Checking for updates...", "blue")
 checked = True
 try:
     response = requests.get(latestVersionUrl).text
-except Exception as e:
+except:
     checked = False # Ensure it doesn't say "No updates found" later, and only prints that it couldn't check for updates
     response = version # Set the latest version to the current version.
-    colorprint(f"Could not check for latest updates. Icarus Lite will continue running normally. {e}", "red")
+    colorprint("Could not check for latest updates. Icarus Lite will continue running normally.", "red")
 
 v = tuple(map(int, version.split('.'))) # Convert current script version to a tuple
 lv = tuple(map(int, response.split('.'))) # Convert latest version to a tuple
