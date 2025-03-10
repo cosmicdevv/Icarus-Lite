@@ -25,7 +25,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from datetime import datetime, timezone, timedelta
 from dmbackend import device_management_pb2
 
-version = "1.1.5"
+version = "1.1.6"
 pInitial = 3001 # The port that MiniServers will start up from.
 latestVersionUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/version.txt" # URL of the file where the latest version number is stored
 scriptUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/main.py" # URL of the file where the latest script version is stored
@@ -43,11 +43,11 @@ noSupport = False # If user is running with invalid certs, makes the console pri
 def colorprint(text, color):
     # If noSupport is True, we'll append [NS] to the beginning of every printed line.
     if color == "blue":
-        print(f"\033[34m{text if not noSupport else "[NS] " + text}\033[0m")
+        print(f"\033[34m{text if not noSupport else '[NS] ' + text}\033[0m")
     elif color == "green":
-        print(f"\033[32m{text if not noSupport else "[NS] " + text}\033[0m")
+        print(f"\033[32m{text if not noSupport else '[NS] ' + text}\033[0m")
     elif color == "red":
-        print(f"\033[31m{text if not noSupport else "[NS] " + text}\033[0m")
+        print(f"\033[31m{text if not noSupport else '[NS] ' + text}\033[0m")
 
 def generateCerts():
     # Load CA certificate and key using cryptography
