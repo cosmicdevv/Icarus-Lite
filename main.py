@@ -9,6 +9,7 @@ warnings.simplefilter("ignore", category=UserWarning)
 import os
 import sys
 import time
+import json
 import socket
 import ssl
 import shutil
@@ -30,7 +31,7 @@ from dmbackend import device_management_pb2
 """
 GLOBAL VARIABLES
 """
-version = "1.1.8"
+version = "1.1.9"
 pInitial = 3001 # The port that MiniServers will start up from.
 latestVersionUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/version.txt" # URL of the file where the latest version number is stored
 scriptUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/main.py" # URL of the file where the latest script version is stored
@@ -43,6 +44,10 @@ sslCerts = {
 certPaths = {} # Stores paths of certificates on the local filesystem
 installationFolder = "IcarusLite" # Folder name that stores certificates
 noSupport = False # If user is running with invalid certs, makes the console print extra characters so if I get an Issue on the GitHub and see the characters it means they're using invalid certs and it's on them
+config = {
+    "bypassCA": False,
+    "autoUpdate": False,
+}
 
 """
 PROXY/MINISERVER FUNCTIONALITY
@@ -249,16 +254,18 @@ def handleManualCertificates():
             certPaths["caKey"] = f"{installationFolder}/manualcerts/myCA.key"
             certPaths["caPem"] = f"{installationFolder}/manualcerts/myCA.pem"
             break
-        elif googleKey and googlePem and (not caKey or not caPem) and caBypass: # If SSL certs are present but CA's aren't and the user has a caBypass file, we'll bypass the need for CA's.
-            colorprint("CA bypass is active. Using manual certificates for Icarus Lite.", "green")
-            colorprint("WARNING: When using CA bypass, certificate verification and regeneration will be unavailable.", "blue")
-            certPaths["key"] = f"{installationFolder}/manualcerts/google.com.key"
-            certPaths["pem"] = f"{installationFolder}/manualcerts/google.com.pem"
-            noSupport = True
-        elif googleKey and googlePem and (not caKey or not caPem) and messageDisplayed[1] == False: 
-            colorprint("! IMPORTANT !", "red")
-            colorprint("Manual certificates found, but CA's are missing. If you would like to continue without CA's, please create an empty file named 'bypassCA.txt'.", "blue")
-            messageDisplayed[1] = True
+        elif googleKey and googlePem and (not caKey or not caPem): # If SSL certs are present but CA's aren't
+            if config["bypassCA"]: # If the user has bypassCA set, we'll bypass the need for CA
+                colorprint("CA bypass is active. Using manual certificates for Icarus Lite.", "green")
+                colorprint("WARNING: When using CA bypass, certificate verification and regeneration will be unavailable.", "blue")
+                certPaths["key"] = f"{installationFolder}/manualcerts/google.com.key"
+                certPaths["pem"] = f"{installationFolder}/manualcerts/google.com.pem"
+                noSupport = True
+                break
+            elif not messageDisplayed[1]:
+                colorprint("! IMPORTANT !", "red")
+                colorprint("Manual certificates found, but CA's are missing. If you would like to continue without CA's, please create an empty file named 'bypassCA.txt'.", "blue")
+                messageDisplayed[1] = True
         # If the user doesn't have certs in manualcerts on first check, prompt them to put them in.
         if messageDisplayed[0] == False:
             colorprint(f"""Please manually download the following certificates:
@@ -399,40 +406,47 @@ lv = tuple(map(int, response.split('.'))) # Convert latest version to a tuple
 # Check if latest version is more than current version
 if lv > v:
     colorprint(f"New script update found! Latest version: v{response}", "green")
-    colorprint("Do you want to automatically update? (Y/N)", "blue")
-    while True:
-        choice = input().lower()
-        if choice in ["y", "yes"]:
-            if getattr(sys, "frozen", False): # Running on exe
-                colorprint("! IMPORTANT !", "red")
-                colorprint("Icarus Lite cannot auto-update when ran as a compiled file (such as an exe). Please refer to the GitHub repository to download latest precompiled Icarus Lite versions.", "blue")
+    if config["autoUpdate"]:
+        colorprint("autoUpdate flag is set to true in Icarus Lite local configuration. Updating...", "green")
+        choice = True
+    else:
+        colorprint("Do you want to automatically update? (Y/N)", "blue")
+        while True:
+            choice = input().lower()
+            if choice in ["y", "yes"]:
+                choice = True
+                break
+            elif choice in ["n", "no"]: # They chose not to update
+                colorprint("Icarus Lite will not update and will run on installed version.", "blue")
+                colorprint("! IMPORANT !", "red")
                 colorprint("Support will not be given to users running outdated versions.", "red")
                 noSupport = True
-            else:
-                newFile = requests.get(scriptUrl)
-                # If the retrieval was successful
-                if newFile.status_code == 200:
-                    # Overwrite the script with the latest script version
-                    with open(sys.argv[0], "wb") as f:
-                        f.write(newFile.content)
-                    colorprint("Script updated successfully! Restarting...", "green")
-                    # Restart the script
-                    if os.name == "nt": # If on Windows
-                        subprocess.Popen([sys.executable] + sys.argv)
-                        sys.exit()
-                    else: # If on any other OS
-                        os.execv(sys.executable, [sys.executable] + sys.argv)
-                else: # Script wasn't downloaded successfully
-                    print("Failed to download latest update.", response.status_code)
-                    colorprint("! IMPORANT !", "red")
-                    colorprint("Support will not be given to users running outdated versions.", "red")
-                    noSupport = True
-        elif choice in ["n", "no"]: # They chose not to update
-            colorprint("Icarus Lite will not update and will run on installed version.", "blue")
-            colorprint("! IMPORANT !", "red")
+                break
+    if choice == True: # If user selected to update or auto-update is set
+        if getattr(sys, "frozen", False): # Running on exe
+            colorprint("! IMPORTANT !", "red")
+            colorprint("Icarus Lite cannot auto-update when ran as a compiled file (such as an exe). Please refer to the GitHub repository to download latest precompiled Icarus Lite versions.", "blue")
             colorprint("Support will not be given to users running outdated versions.", "red")
             noSupport = True
-        break
+        else:
+            newFile = requests.get(scriptUrl)
+            # If the retrieval was successful
+            if newFile.status_code == 200:
+                # Overwrite the script with the latest script version
+                with open(sys.argv[0], "wb") as f:
+                    f.write(newFile.content)
+                colorprint("Script updated successfully! Restarting...", "green")
+                # Restart the script
+                if os.name == "nt": # If on Windows
+                    subprocess.Popen([sys.executable] + sys.argv)
+                    sys.exit()
+                else: # If on any other OS
+                    os.execv(sys.executable, [sys.executable] + sys.argv)
+            else: # Script wasn't downloaded successfully
+                print("Failed to download latest update.", response.status_code)
+                colorprint("! IMPORANT !", "red")
+                colorprint("Support will not be given to users running outdated versions.", "red")
+                noSupport = True
 else:
     if checked: # If the latest version was successfully retrieved
         colorprint(f"No updates found. Latest version: v{version}", "green")
@@ -442,7 +456,7 @@ FILE STRUCTURE AUTOMATIC SETUP
 colorprint("Checking installation...", "blue")
 # Check if the Icarus folder exists
 firstTime = False
-if not os.path.exists(installationFolder) or not os.path.exists(f"{installationFolder}/autocerts") or not os.path.exists(f"{installationFolder}/manualcerts"):
+if not os.path.exists(installationFolder) or not os.path.exists(f"{installationFolder}/autocerts") or not os.path.exists(f"{installationFolder}/manualcerts") or not os.path.exists(f"{installationFolder}/config.json"):
     firstTime = True
     colorprint("! WARNING !\nIcarus Lite is not set up in the local directory. Do you want to automatically set up? (Y/N)", "blue")
     # Ask the user if they want to create the Icarus folder, loop to ensure valid input
@@ -460,8 +474,17 @@ if not os.path.exists(installationFolder) or not os.path.exists(f"{installationF
     os.makedirs(f"{installationFolder}/autocerts", exist_ok=True)
     colorprint("Creating manual certificate folder...", "blue")
     os.makedirs(f"{installationFolder}/manualcerts", exist_ok=True)
+    with open(f"{installationFolder}/config.json", "w") as configFile:
+        configFile.write(json.dumps(config)) # Write default configuration
 else:
     colorprint("Icarus Lite installation is valid.", "green")
+colorprint("Reading Icarus Lite config...", "blue")
+with open(f"{installationFolder}/config.json", "r") as configFile:
+    try:
+        config = json.loads(configFile.read())
+        colorprint("Icarus Lite configuration loaded.", "green")
+    except:
+        colorprint("Error reading configuration! If manually edited, please check syntax. Using default configuration.", "red")
 colorprint("Continuing in 5 seconds...", "green")
 time.sleep(5)
 clear()

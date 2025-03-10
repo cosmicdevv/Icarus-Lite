@@ -1,12 +1,15 @@
 # Icarus-Lite
 Icarus Lite is a lightweight and easy-to-use version of the ChromeOS unenrollment exploit known as Icarus, which unenrolls devices with device management interception using a proxy and a custom Certificate Authority.
+> [!IMPORTANT]
+> As of 3/10/25, Icarus Lite is fully functional and works with prebuilt shims from [kxtz's file host](https://dl.kxtz.dev/ChromeOS/shims/Icarus) and/or [fanqyxl's file host](https://dl.fanqyxl.net/ChromeOS/Prebuilts/Icarus). Please use the automatic certificate downloader for best results.
+> <b>The precompiled Windows .exe currently DOES NOT WORK! Please use Icarus Lite from source.</b>
 <br>
+
 > Icarus Lite is based off the [original Icarus](https://github.com/MunyDev/icarus) code and works in the same way. Although the original Icarus is currently archived and no longer recieving support, Icarus Lite will be supported and updated.
 ## Warnings
 > [!IMPORTANT]
 > Icarus AND Icarus Lite <b>only</b> work on ChromeOS versions between 125 and 130. If you are not in the range of compatible versions, please upgrade/downgrade to a compatible version to use Icarus."<br>
 
-> As of 3/9/25, Icarus Lite has been tested and confirmed to work. Shims are available on kxtz's download server. Use automatic certificate downloading when attempting to use Icarus Lite.
 - Do not use any public Icarus proxies. Icarus can be used maliciously to remotely manage and track devices. Icarus Lite is intended to be simple to use, and self-hosting Icarus is heavily advised over using any public proxies.
 - Icarus Lite does <b>NOT</b> currently have functionality to build Icarus shims. Please download a prebuilt shim to use Icarus Lite, or refer an Icarus fork for information on manually building shims.
 
@@ -86,5 +89,6 @@ This section contains planned updates to Icarus Lite to improve functionality.
 
 ## Credits
 - [cosmicdevv](https://github.com/cosmicdevv) - Writing and maintaining Icarus Lite
-- [MunyDev](https://github.com/MunyDev) - Discovering and creating original Icarus
 - [kxtzownsu](https://github.com/kxtzownsu) - Maintaining certificates Icarus uses
+- [Fanqyxl](https://github.com/fanqyxl) - Emotional support + keyrolling his chromebook lol
+- [MunyDev](https://github.com/MungyDev) - Discovering and creating original Icarus
