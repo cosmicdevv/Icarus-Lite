@@ -25,7 +25,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from datetime import datetime, timezone, timedelta
 from dmbackend import device_management_pb2
 
-version = "1.1.4"
+version = "1.1.5"
 pInitial = 3001 # The port that MiniServers will start up from.
 latestVersionUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/version.txt" # URL of the file where the latest version number is stored
 scriptUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/main.py" # URL of the file where the latest script version is stored
@@ -373,24 +373,30 @@ if lv > v:
     while True:
         choice = input().lower()
         if choice in ["y", "yes"]:
-            newFile = requests.get(scriptUrl)
-            # If the retrieval was successful
-            if newFile.status_code == 200:
-                # Overwrite the script with the latest script version
-                with open(sys.argv[0], "wb") as f:
-                    f.write(newFile.content)
-                colorprint("Script updated successfully! Restarting...", "green")
-                # Restart the script
-                if os.name == "nt": # If on Windows
-                    subprocess.Popen([sys.executable] + sys.argv)
-                    sys.exit()
-                else: # If on any other OS
-                    os.execv(sys.executable, [sys.executable] + sys.argv)
-            else: # Script wasn't downloaded successfully
-                print("Failed to download latest update.", response.status_code)
-                colorprint("! IMPORANT !", "red")
+            if getattr(sys, "frozen", False): # Running on exe
+                colorprint("! IMPORTANT !", "red")
+                colorprint("Icarus Lite cannot auto-update when ran as a compiled file (such as an exe). Please refer to the GitHub repository to download latest precompiled Icarus Lite versions.", "blue")
                 colorprint("Support will not be given to users running outdated versions.", "red")
                 noSupport = True
+            else:
+                newFile = requests.get(scriptUrl)
+                # If the retrieval was successful
+                if newFile.status_code == 200:
+                    # Overwrite the script with the latest script version
+                    with open(sys.argv[0], "wb") as f:
+                        f.write(newFile.content)
+                    colorprint("Script updated successfully! Restarting...", "green")
+                    # Restart the script
+                    if os.name == "nt": # If on Windows
+                        subprocess.Popen([sys.executable] + sys.argv)
+                        sys.exit()
+                    else: # If on any other OS
+                        os.execv(sys.executable, [sys.executable] + sys.argv)
+                else: # Script wasn't downloaded successfully
+                    print("Failed to download latest update.", response.status_code)
+                    colorprint("! IMPORANT !", "red")
+                    colorprint("Support will not be given to users running outdated versions.", "red")
+                    noSupport = True
         elif choice in ["n", "no"]: # They chose not to update
             colorprint("Icarus Lite will not update and will run on installed version.", "blue")
             colorprint("! IMPORANT !", "red")
