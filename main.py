@@ -47,12 +47,6 @@ def colorprint(text, color):
     elif color == "red":
         print(f"\033[31m{text if not noSupport else "[NS] " + text}\033[0m")
 
-from cryptography import x509
-from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from datetime import datetime, timedelta, timezone
-
 def generateCerts():
     # Load CA certificate and key using cryptography
     with open(certPaths["caPem"], "rb") as f:
