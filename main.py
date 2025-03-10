@@ -3,7 +3,9 @@ Icarus Lite
 Written by cosmicdevv
 https://github.com/cosmicdevv/Icarus-Lite
 """
-
+import warnings
+# If on 32 bit Python, ignore Cryptography warnings (they're annoying)
+warnings.simplefilter("ignore", category=UserWarning)
 import os
 import sys
 import time
@@ -25,7 +27,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from datetime import datetime, timezone, timedelta
 from dmbackend import device_management_pb2
 
-version = "1.1.6"
+version = "1.1.7"
 pInitial = 3001 # The port that MiniServers will start up from.
 latestVersionUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/version.txt" # URL of the file where the latest version number is stored
 scriptUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/main.py" # URL of the file where the latest script version is stored
