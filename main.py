@@ -27,6 +27,9 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from datetime import datetime, timezone, timedelta
 from dmbackend import device_management_pb2
 
+"""
+GLOBAL VARIABLES
+"""
 version = "1.1.7"
 pInitial = 3001 # The port that MiniServers will start up from.
 latestVersionUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/version.txt" # URL of the file where the latest version number is stored
@@ -41,104 +44,9 @@ certPaths = {} # Stores paths of certificates on the local filesystem
 installationFolder = "IcarusLite" # Folder name that stores certificates
 noSupport = False # If user is running with invalid certs, makes the console print extra characters so if I get an Issue on the GitHub and see the characters it means they're using invalid certs and it's on them
 
-# Custom function to print text with color to enhance user experience while reducing dependies (such as Colorama) that are needed
-def colorprint(text, color):
-    # If noSupport is True, we'll append [NS] to the beginning of every printed line.
-    if color == "blue":
-        print(f"\033[34m{text if not noSupport else '[NS] ' + text}\033[0m")
-    elif color == "green":
-        print(f"\033[32m{text if not noSupport else '[NS] ' + text}\033[0m")
-    elif color == "red":
-        print(f"\033[31m{text if not noSupport else '[NS] ' + text}\033[0m")
-
-def generateCerts():
-    # Load CA certificate and key using cryptography
-    with open(certPaths["caPem"], "rb") as f:
-        ca_cert = x509.load_pem_x509_certificate(f.read())
-    with open(certPaths["caKey"], "rb") as f:
-        ca_key = serialization.load_pem_private_key(f.read(), password=None)
-    # Verify that the CA certificate and key match by comparing their public keys
-    ca_cert_pub = ca_cert.public_key()
-    ca_key_pub = ca_key.public_key()
-    ca_cert_pub_bytes = ca_cert_pub.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
-    )
-    ca_key_pub_bytes = ca_key_pub.public_bytes(
-        encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
-    )
-    if ca_cert_pub_bytes != ca_key_pub_bytes:
-        return -1  # -1 return code means CA's don't match
-    # Generate a new private key for google.com
-    key = rsa.generate_private_key(public_exponent=65537, key_size=4096)
-    # Build subject for the new certificate
-    subject = x509.Name([
-        x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
-        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "PRIVATE"),
-        x509.NameAttribute(NameOID.LOCALITY_NAME, "PRIVATE"),
-        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Success!"),
-        x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, "Success"),
-        x509.NameAttribute(NameOID.COMMON_NAME, "*.google.com"),
-    ])
-    # Set the issuer from the CA certificate's subject
-    issuer = ca_cert.subject
-    # Build the certificate with timezone-aware validity dates
-    cert_builder = x509.CertificateBuilder()\
-        .subject_name(subject)\
-        .issuer_name(issuer)\
-        .public_key(key.public_key())\
-        .serial_number(1000)\
-        .not_valid_before(datetime.now(timezone.utc))\
-        .not_valid_after(datetime.now(timezone.utc) + timedelta(days=365))
-    # Create AuthorityKeyIdentifier extension using the CA's public key info
-    ca_subject_key_identifier = x509.SubjectKeyIdentifier.from_public_key(ca_cert_pub)
-    authority_key_identifier = x509.AuthorityKeyIdentifier(
-        key_identifier=ca_subject_key_identifier.digest,
-        authority_cert_issuer=[x509.DirectoryName(issuer)],
-        authority_cert_serial_number=ca_cert.serial_number
-    )
-    cert_builder = cert_builder.add_extension(authority_key_identifier, critical=False)
-    # Add BasicConstraints extension (indicating this cert is not a CA)
-    cert_builder = cert_builder.add_extension(
-        x509.BasicConstraints(ca=False, path_length=None), critical=True
-    )
-    # Add KeyUsage extension
-    cert_builder = cert_builder.add_extension(
-        x509.KeyUsage(
-            digital_signature=True,
-            content_commitment=True,
-            key_encipherment=True,
-            data_encipherment=True,
-            key_agreement=False,
-            key_cert_sign=False,
-            crl_sign=False,
-            encipher_only=False,
-            decipher_only=False
-        ),
-        critical=True
-    )
-    # Add SubjectAlternativeName extension for the wildcard domain
-    cert_builder = cert_builder.add_extension(
-        x509.SubjectAlternativeName([x509.DNSName("*.google.com")]),
-        critical=False
-    )
-    # Sign the certificate using the CA's private key
-    cert = cert_builder.sign(private_key=ca_key, algorithm=hashes.SHA256())
-    # Save the new certificate and key
-    try:
-        with open(f"{installationFolder}/manualcerts/google.com.pem", "wb") as f:
-            f.write(cert.public_bytes(serialization.Encoding.PEM))
-        with open(f"{installationFolder}/manualcerts/google.com.key", "wb") as f:
-            f.write(key.private_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PrivateFormat.TraditionalOpenSSL,
-                encryption_algorithm=serialization.NoEncryption()
-            ))
-    except Exception:
-        return -2  # -2 return code means error saving new certificates
-    return 0  # 0 return code means success
-
+"""
+PROXY/MINISERVER FUNCTIONALITY
+"""
 # unlike normal icarus which calls other files and shit to create a miniserver, we can do it easily in icarus Lite!!!!!
 class MiniServerHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
@@ -321,13 +229,18 @@ def tunnel_traffic(client_socket, server_socket):
     client_socket.close()
     server_socket.close()
 
+"""
+EXTRA FUNCTIONALITY
+"""
+
 def handleManualCertificates():
-    messageDisplayed = False
+    messageDisplayed = [False, False]
     while True:
         googleKey = os.path.exists(f"{installationFolder}/manualcerts/google.com.key")
         googlePem = os.path.exists(f"{installationFolder}/manualcerts/google.com.pem")
         caKey = os.path.exists(f"{installationFolder}/manualcerts/myCA.key")
         caPem = os.path.exists(f"{installationFolder}/manualcerts/myCA.pem")
+        caBypass = os.path.exists(f"{installationFolder}/manualcerts/bypassCA.txt")
         if googleKey and googlePem and caKey and caPem:
             colorprint("Manual certificates found. Using manual certificates for Icarus Lite.", "green")
             # Set the certificate paths to the manualcerts path
@@ -336,8 +249,18 @@ def handleManualCertificates():
             certPaths["caKey"] = f"{installationFolder}/manualcerts/myCA.key"
             certPaths["caPem"] = f"{installationFolder}/manualcerts/myCA.pem"
             break
+        elif googleKey and googlePem and (not caKey or not caPem) and caBypass: # If SSL certs are present but CA's aren't and the user has a caBypass file, we'll bypass the need for CA's.
+            colorprint("CA bypass is active. Using manual certificates for Icarus Lite.", "green")
+            colorprint("WARNING: When using CA bypass, certificate verification and regeneration will be unavailable.", "blue")
+            certPaths["key"] = f"{installationFolder}/manualcerts/google.com.key"
+            certPaths["pem"] = f"{installationFolder}/manualcerts/google.com.pem"
+            noSupport = True
+        elif googleKey and googlePem and (not caKey or not caPem) and messageDisplayed[1] == False: 
+            colorprint("! IMPORTANT !", "red")
+            colorprint("Manual certificates found, but CA's are missing. If you would like to continue without CA's, please create an empty file named 'bypassCA.txt'.", "blue")
+            messageDisplayed[1] = True
         # If the user doesn't have certs in manualcerts on first check, prompt them to put them in.
-        if messageDisplayed == False:
+        if messageDisplayed[0] == False:
             colorprint(f"""Please manually download the following certificates:
                        - google.com.key 
                        - google.com.pem
@@ -347,17 +270,122 @@ def handleManualCertificates():
                        {installationFolder}/manualcerts/
                        Waiting for certificates..."""
                        , "blue")
-            messageDisplayed = True # Ensure the message isn't displayed every loop iteration
+            messageDisplayed[0] = True # Ensure the message isn't displayed every loop iteration
         # small delay
         time.sleep(1)
 
 # Below is a function that clears the console
 clear = lambda: os.system("cls") if os.name == "nt" else os.system("clear")
 
-os.system("title Icarus Lite")
+# Custom function to print text with color to enhance user experience while reducing dependies (such as Colorama) that are needed
+def colorprint(text, color):
+    # If noSupport is True, we'll append [NS] to the beginning of every printed line.
+    if color == "blue":
+        print(f"\033[34m{text if not noSupport else '[NS] ' + text}\033[0m")
+    elif color == "green":
+        print(f"\033[32m{text if not noSupport else '[NS] ' + text}\033[0m")
+    elif color == "red":
+        print(f"\033[31m{text if not noSupport else '[NS] ' + text}\033[0m")
+
+def generateCerts():
+    # Load CA certificate and key using cryptography
+    with open(certPaths["caPem"], "rb") as f:
+        ca_cert = x509.load_pem_x509_certificate(f.read())
+    with open(certPaths["caKey"], "rb") as f:
+        ca_key = serialization.load_pem_private_key(f.read(), password=None)
+    # Verify that the CA certificate and key match by comparing their public keys
+    ca_cert_pub = ca_cert.public_key()
+    ca_key_pub = ca_key.public_key()
+    ca_cert_pub_bytes = ca_cert_pub.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    ca_key_pub_bytes = ca_key_pub.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    if ca_cert_pub_bytes != ca_key_pub_bytes:
+        return -1  # -1 return code means CA's don't match
+    # Generate a new private key for google.com
+    key = rsa.generate_private_key(public_exponent=65537, key_size=4096)
+    # Build subject for the new certificate
+    subject = x509.Name([
+        x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "PRIVATE"),
+        x509.NameAttribute(NameOID.LOCALITY_NAME, "PRIVATE"),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Success!"),
+        x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, "Success"),
+        x509.NameAttribute(NameOID.COMMON_NAME, "*.google.com"),
+    ])
+    # Set the issuer from the CA certificate's subject
+    issuer = ca_cert.subject
+    # Build the certificate with timezone-aware validity dates
+    cert_builder = x509.CertificateBuilder()\
+        .subject_name(subject)\
+        .issuer_name(issuer)\
+        .public_key(key.public_key())\
+        .serial_number(1000)\
+        .not_valid_before(datetime.now(timezone.utc))\
+        .not_valid_after(datetime.now(timezone.utc) + timedelta(days=365))
+    # Create AuthorityKeyIdentifier extension using the CA's public key info
+    ca_subject_key_identifier = x509.SubjectKeyIdentifier.from_public_key(ca_cert_pub)
+    authority_key_identifier = x509.AuthorityKeyIdentifier(
+        key_identifier=ca_subject_key_identifier.digest,
+        authority_cert_issuer=[x509.DirectoryName(issuer)],
+        authority_cert_serial_number=ca_cert.serial_number
+    )
+    cert_builder = cert_builder.add_extension(authority_key_identifier, critical=False)
+    # Add BasicConstraints extension (indicating this cert is not a CA)
+    cert_builder = cert_builder.add_extension(
+        x509.BasicConstraints(ca=False, path_length=None), critical=True
+    )
+    # Add KeyUsage extension
+    cert_builder = cert_builder.add_extension(
+        x509.KeyUsage(
+            digital_signature=True,
+            content_commitment=True,
+            key_encipherment=True,
+            data_encipherment=True,
+            key_agreement=False,
+            key_cert_sign=False,
+            crl_sign=False,
+            encipher_only=False,
+            decipher_only=False
+        ),
+        critical=True
+    )
+    # Add SubjectAlternativeName extension for the wildcard domain
+    cert_builder = cert_builder.add_extension(
+        x509.SubjectAlternativeName([x509.DNSName("*.google.com")]),
+        critical=False
+    )
+    # Sign the certificate using the CA's private key
+    cert = cert_builder.sign(private_key=ca_key, algorithm=hashes.SHA256())
+    # Save the new certificate and key
+    try:
+        with open(f"{installationFolder}/manualcerts/google.com.pem", "wb") as f:
+            f.write(cert.public_bytes(serialization.Encoding.PEM))
+        with open(f"{installationFolder}/manualcerts/google.com.key", "wb") as f:
+            f.write(key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.TraditionalOpenSSL,
+                encryption_algorithm=serialization.NoEncryption()
+            ))
+    except Exception:
+        return -2  # -2 return code means error saving new certificates
+    return 0  # 0 return code means success
+
+if os.name == "nt": # If on Windows
+    os.system(f"title Icarus Lite") # Set window title
+else:
+    sys.stdout.write(f"\033]0;Icarus Lite\007") # Set window title
+    sys.stdout.flush()
 colorprint(f"Icarus Lite v{version}", "blue")
 colorprint("Written by cosmicdevv", "blue")
 colorprint("Checking for updates...", "blue")
+"""
+AUTO-UPDATER
+"""
 checked = True
 try:
     response = requests.get(latestVersionUrl).text
@@ -408,6 +436,9 @@ if lv > v:
 else:
     if checked: # If the latest version was successfully retrieved
         colorprint(f"No updates found. Latest version: v{version}", "green")
+"""
+FILE STRUCTURE AUTOMATIC SETUP
+"""
 colorprint("Checking installation...", "blue")
 # Check if the Icarus folder exists
 firstTime = False
@@ -434,8 +465,11 @@ else:
 colorprint("Continuing in 5 seconds...", "green")
 time.sleep(5)
 clear()
+"""
+CERTIFICATE CONFIGURATION
+"""
 # Give the user the option to use manual certs or automatically downloaded certs
-colorprint("CERTIFICATE OPTIONS:\n\n1. Use manual (local) certificates\n2. Automatically download latest certificates\n\nEnter 1/2 for choice.", "blue")
+colorprint("CERTIFICATE OPTIONS:\n\n1. Automatically download latest certificates [RECOMMENDED]\n2. Use manual (local) certificates [DEBUG ONLY]\n\nEnter 1/2 for choice.", "blue")
 # Let the user choose
 while True:
     choice = input().lower()
@@ -445,9 +479,7 @@ while True:
     if choice in ["2", "two"]:
         choice = 2 # Make sure choice is an integer
         break
-if choice == 1: # If they selected to use manual certificates
-    handleManualCertificates()
-else: # If they selected to automatically download certs
+if choice == 1: # If they selected to automatically download certificates
     colorprint("Downloading latest Icarus SSL certificates...", "blue")
     success = True # If a download fails, this gets set to false
     # Loop through all the necessary SSL certificates, where their filename is the key and the download url is the value
@@ -475,47 +507,57 @@ else: # If they selected to automatically download certs
         certPaths["pem"] = f"{installationFolder}/autocerts/google.com.pem"
         certPaths["caKey"] = f"{installationFolder}/autocerts/myCA.key"
         certPaths["caPem"] = f"{installationFolder}/autocerts/myCA.pem"
-colorprint("Validating certificates...", "blue")
-with open(certPaths["caPem"], "rb") as f: # Load CA
-    ca = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, f.read())
-with open(certPaths["pem"], "rb") as f: # Load SSL certificate
-    cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, f.read())
-# Verify if the issuer of the certificate matches the CA
-isInvalid = cert.get_issuer().hash() != ca.get_subject().hash()
-# Check if the certificate is expired
-isExpired = datetime.strptime(cert.get_notAfter().decode("utf-8"), "%Y%m%d%H%M%SZ").replace(tzinfo=timezone.utc) < datetime.now(timezone.utc)
-if isInvalid or isExpired:
-    colorprint("Certificates are invalid and Icarus Lite will not work as expected.", "red")
-    colorprint("Do you want to build new certificates? (Y/N)", "blue")
-    while True:
-        choice = input().lower()
-        if choice in ["y", "yes"]:
-            certs = generateCerts()
-            if certs == -1: # -1 means CA's don't match
-                colorprint("Could not build new certificates because the CA key and pem do not match.")
-            if certs == -2: # -2 means failed to save certs
-                colorprint("Could not save new certificates.")
-            if certs != 0: # If the generation wasn't successful
+else: # If they selected to use manual certificates
+    handleManualCertificates()
+if certPaths["caKey"] != None and certPaths["caPem"] != None:
+    colorprint("Validating certificates...", "blue")
+    with open(certPaths["caPem"], "rb") as f: # Load CA
+        ca = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, f.read())
+    with open(certPaths["pem"], "rb") as f: # Load SSL certificate
+        cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, f.read())
+    # Verify if the issuer of the certificate matches the CA
+    isInvalid = cert.get_issuer().hash() != ca.get_subject().hash()
+    # Check if the certificate is expired
+    isExpired = datetime.strptime(cert.get_notAfter().decode("utf-8"), "%Y%m%d%H%M%SZ").replace(tzinfo=timezone.utc) < datetime.now(timezone.utc)
+    if isInvalid or isExpired:
+        colorprint("Certificates are invalid and Icarus Lite will not work as expected.", "red")
+        colorprint("Do you want to build new certificates? (Y/N)", "blue")
+        while True:
+            choice = input().lower()
+            if choice in ["y", "yes"]:
+                certs = generateCerts()
+                if certs == -1: # -1 means CA's don't match
+                    colorprint("Could not build new certificates because the CA key and pem do not match.")
+                if certs == -2: # -2 means failed to save certs
+                    colorprint("Could not save new certificates.")
+                if certs != 0: # If the generation wasn't successful
+                    colorprint("! IMPORTANT !", "red")
+                    colorprint("Icarus Lite could not build new certificates and may not work as expected.", "blue")
+                    colorprint("YOU WILL NOT RECIEVE SUPPORT WHILE RUNNING WITH INVALID CERTS!", "blue")
+                    noSupport = True
+                else:
+                    colorprint("Successfully regenerated SSL certificates.", "green")
+                    certPaths["key"] = f"{installationFolder}/manualcerts/google.com.key"
+                    certPaths["pem"] = f"{installationFolder}/manualcerts/google.com.pem"
+                break
+            if choice in ["n", "no"]:
                 colorprint("! IMPORTANT !", "red")
-                colorprint("Icarus Lite could not build new certificates and may not work as expected.", "blue")
+                colorprint("Icarus Lite may not work as expected because the certificates are not correct and you have chosen not to regenerate the certificates.", "blue")
                 colorprint("YOU WILL NOT RECIEVE SUPPORT WHILE RUNNING WITH INVALID CERTS!", "blue")
                 noSupport = True
-            else:
-                colorprint("Successfully regenerated SSL certificates.", "green")
-                certPaths["key"] = f"{installationFolder}/manualcerts/google.com.key"
-                certPaths["pem"] = f"{installationFolder}/manualcerts/google.com.pem"
-            break
-        if choice in ["n", "no"]:
-            colorprint("! IMPORTANT !", "red")
-            colorprint("Icarus Lite may not work as expected because the certificates are not correct and you have chosen not to regenerate the certificates.", "blue")
-            colorprint("YOU WILL NOT RECIEVE SUPPORT WHILE RUNNING WITH INVALID CERTS!", "blue")
-            noSupport = True
-            break
+                break
+    else:
+        colorprint("Certificates are valid!", "green")
 else:
-    colorprint("Certificates are valid!", "green")
+    colorprint("WARNING: CA bypass is active and certificates have not been validated.", "blue")
+    colorprint("SUPPORT WILL NOT BE OFFERED FOR CERTIFICATES THAT CAN NOT BE VALIDATED!", "red")
 colorprint("Continuing in 5 seconds...", "green")
 time.sleep(5)
 clear()
+
+"""
+PROXY SERVER STARTUP LOGIC
+"""
 
 port = 8126
 proxy_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
