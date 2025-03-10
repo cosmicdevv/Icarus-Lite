@@ -31,7 +31,7 @@ from dmbackend import device_management_pb2
 """
 GLOBAL VARIABLES
 """
-version = "1.1.9"
+version = "1.1.10"
 pInitial = 3001 # The port that MiniServers will start up from.
 latestVersionUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/version.txt" # URL of the file where the latest version number is stored
 scriptUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/main.py" # URL of the file where the latest script version is stored
@@ -389,10 +389,18 @@ else:
     sys.stdout.flush()
 colorprint(f"Icarus Lite v{version}", "blue")
 colorprint("Written by cosmicdevv", "blue")
-colorprint("Checking for updates...", "blue")
 """
 AUTO-UPDATER
 """
+if os.path.exists(f"{installationFolder}/config.json"):
+    colorprint("Reading Icarus Lite config...", "blue")
+    with open(f"{installationFolder}/config.json", "r") as configFile:
+        try:
+            config = json.loads(configFile.read())
+            colorprint("Icarus Lite configuration loaded.", "green")
+        except:
+            colorprint("Error reading configuration! If manually edited, please check syntax. Using default configuration.", "red")
+colorprint("Checking for updates...", "blue")
 checked = True
 try:
     response = requests.get(latestVersionUrl).text
@@ -478,13 +486,6 @@ if not os.path.exists(installationFolder) or not os.path.exists(f"{installationF
         configFile.write(json.dumps(config)) # Write default configuration
 else:
     colorprint("Icarus Lite installation is valid.", "green")
-colorprint("Reading Icarus Lite config...", "blue")
-with open(f"{installationFolder}/config.json", "r") as configFile:
-    try:
-        config = json.loads(configFile.read())
-        colorprint("Icarus Lite configuration loaded.", "green")
-    except:
-        colorprint("Error reading configuration! If manually edited, please check syntax. Using default configuration.", "red")
 colorprint("Continuing in 5 seconds...", "green")
 time.sleep(5)
 clear()
