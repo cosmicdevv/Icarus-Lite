@@ -13,6 +13,7 @@ import shutil
 import threading
 import select
 import re
+import subprocess
 import http.server
 import urllib.parse
 import requests
@@ -24,7 +25,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from datetime import datetime, timezone, timedelta
 from dmbackend import device_management_pb2
 
-version = "1.1.2"
+version = "1.1.3"
 pInitial = 3001 # The port that MiniServers will start up from.
 latestVersionUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/version.txt" # URL of the file where the latest version number is stored
 scriptUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/main.py" # URL of the file where the latest script version is stored
@@ -380,7 +381,11 @@ if lv > v:
                     f.write(newFile.content)
                 colorprint("Script updated successfully! Restarting...", "green")
                 # Restart the script
-                os.execv(sys.argv[0], sys.argv)
+                if os.name == "nt": # If on Windows
+                    subprocess.Popen([sys.executable] + sys.argv)
+                    sys.exit()
+                else: # If on any other OS
+                    os.execv(sys.executable, [sys.executable] + sys.argv)
             else: # Script wasn't downloaded successfully
                 print("Failed to download latest update.", response.status_code)
                 colorprint("! IMPORANT !", "red")
@@ -408,7 +413,7 @@ if not os.path.exists(installationFolder) or not os.path.exists(f"{installationF
             break
         elif choice in ["n", "no"]:
             colorprint("Icarus Lite will not set up due to user choice.", "red")
-            exit()
+            sys.exit()
     # If they selected yes, create necessary folders
     colorprint("Creating install folder...", "blue")
     os.makedirs(installationFolder, exist_ok=True)
