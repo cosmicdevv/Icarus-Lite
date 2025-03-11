@@ -31,7 +31,7 @@ from dmbackend import device_management_pb2
 """
 GLOBAL VARIABLES
 """
-version = "1.1.10"
+version = "1.1.11"
 pInitial = 3001 # The port that MiniServers will start up from.
 latestVersionUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/version.txt" # URL of the file where the latest version number is stored
 scriptUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/main.py" # URL of the file where the latest script version is stored
@@ -47,6 +47,7 @@ noSupport = False # If user is running with invalid certs, makes the console pri
 config = {
     "bypassCA": False,
     "autoUpdate": False,
+    "autoCertificateMode": 0,
 }
 
 """
@@ -390,25 +391,39 @@ else:
 colorprint(f"Icarus Lite v{version}", "blue")
 colorprint("Written by cosmicdevv", "blue")
 """
-AUTO-UPDATER
+CONFIGURATION LOADER
 """
 if os.path.exists(f"{installationFolder}/config.json"):
     colorprint("Reading Icarus Lite config...", "blue")
-    with open(f"{installationFolder}/config.json", "r") as configFile:
+    with open(f"{installationFolder}/config.json", "r+") as configFile: # load config bullshit
         try:
-            config = json.loads(configFile.read())
+            newConfig = config.copy()
+            configFileJson = json.loads(configFile.read())
+            for cfg_key, cfg_val in configFileJson.items(): # Iterate through every config key and value in the config.json file
+                if cfg_key in config: # If the key is a key present in the default config, continue
+                    newConfig[cfg_key] = cfg_val # Set the newConfig value of the key to the value (i did not explain that shit good)
+            if newConfig.keys() > configFileJson.keys(): # If they have a different amount of values
+                colorprint("Updating config.json file with latest configuration values...", "green")
+                configFile.seek(0)
+                configFile.truncate()
+                configFile.write(json.dumps(newConfig)) # Set the config file to recognized config
+                colorprint("config.json file updated.")
+            config = newConfig.copy()
             colorprint("Icarus Lite configuration loaded.", "green")
         except:
             colorprint("Error reading configuration! If manually edited, please check syntax. Using default configuration.", "red")
+# If the config.json file doesn't exist, we don't have to create it here because it gets created later in the code.
+"""
+AUTO-UPDATER
+"""
 colorprint("Checking for updates...", "blue")
 checked = True
 try:
     response = requests.get(latestVersionUrl).text
-except:
+except Exception as e:
     checked = False # Ensure it doesn't say "No updates found" later, and only prints that it couldn't check for updates
     response = version # Set the latest version to the current version.
-    colorprint("Could not check for latest updates. Icarus Lite will continue running normally.", "red")
-
+    colorprint("Could not check for latest updates, please check any firewalls or network restrictions. Icarus Lite will continue running normally.", "red")
 v = tuple(map(int, version.split('.'))) # Convert current script version to a tuple
 lv = tuple(map(int, response.split('.'))) # Convert latest version to a tuple
 # Check if latest version is more than current version
@@ -492,17 +507,25 @@ clear()
 """
 CERTIFICATE CONFIGURATION
 """
-# Give the user the option to use manual certs or automatically downloaded certs
-colorprint("CERTIFICATE OPTIONS:\n\n1. Automatically download latest certificates [RECOMMENDED]\n2. Use manual (local) certificates [DEBUG ONLY]\n\nEnter 1/2 for choice.", "blue")
-# Let the user choose
-while True:
-    choice = input().lower()
-    if choice in ["1", "one"]:
-        choice = 1 # Make sure choice is an integer
-        break
-    if choice in ["2", "two"]:
-        choice = 2 # Make sure choice is an integer
-        break
+showOptions = True
+if config["autoCertificateMode"] in [1, 2]: # If autoCertificateMode config is 1 or 2
+    colorprint(f"autoCertificateMode flag is set to '{config['autoCertificateMode']}' in Icarus Lite local configuration.", "green")
+    choice = config["autoCertificateMode"]
+    showOptions = False # Make sure options aren't shown since a recognized config value is applied
+elif config["autoCertificateMode"] != 0: # If autoCertificateMode is set, but not to 1 or 2
+    colorprint(f"WARNING: autoCertificateMode config is set, but to an unrecognized value of '{config['autoCertificateMode']}'. The configuration value will be ignored.", "red")
+if showOptions:
+    # Give the user the option to use manual certs or automatically downloaded certs
+    colorprint("CERTIFICATE OPTIONS:\n\n1. Automatically download latest certificates [RECOMMENDED]\n2. Use manual (local) certificates [DEBUG ONLY]\n\nEnter 1/2 for choice.", "blue")
+    # Let the user choose
+    while True:
+        choice = input().lower()
+        if choice in ["1", "one"]:
+            choice = 1 # Make sure choice is an integer
+            break
+        if choice in ["2", "two"]:
+            choice = 2 # Make sure choice is an integer
+            break
 if choice == 1: # If they selected to automatically download certificates
     colorprint("Downloading latest Icarus SSL certificates...", "blue")
     success = True # If a download fails, this gets set to false

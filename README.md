@@ -87,6 +87,7 @@ Upon first setup, Icarus Lite will automatically create and set a ``config.json`
 Current configuration options include:
 - ``bypassCA``: This option, if set to ``true``, will bypass Icarus Lite requiring a CA in addition to SSL certificates. It will also disable SSL certificate validation.
 - ``autoUpdate``: This option, if set to ``true``, will automatically update Icarus Lite when an update is detected and bypass asking the user yes or no.
+- ``autoCertificateMode``: This option, if set to ``1`` or ``2``, will automatically select the certificate mode and bypass asking the user for a selection. Its default value is ``0``, where it will not affect anything.
 
 ## Future Updates
 This section contains planned updates to Icarus Lite to improve functionality.
