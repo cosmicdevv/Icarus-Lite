@@ -98,4 +98,4 @@ This section contains planned updates to Icarus Lite to improve functionality.
 - [cosmicdevv](https://github.com/cosmicdevv) - Writing and maintaining Icarus Lite
 - [kxtzownsu](https://github.com/kxtzownsu) - Maintaining certificates Icarus uses
 - [Fanqyxl](https://github.com/fanqyxl) - Emotional support + keyrolling his chromebook lol
-- [MunyDev](https://github.com/MungyDev) - Discovering and creating original Icarus
+- [MunyDev](https://github.com/MunyDev) - Discovering and creating original Icarus
