@@ -31,7 +31,7 @@ from dmbackend import device_management_pb2
 """
 GLOBAL VARIABLES
 """
-version = "1.1.11"
+version = "1.1.12"
 pInitial = 3001 # The port that MiniServers will start up from.
 latestVersionUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/version.txt" # URL of the file where the latest version number is stored
 scriptUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/main.py" # URL of the file where the latest script version is stored
@@ -48,6 +48,7 @@ config = {
     "bypassCA": False,
     "autoUpdate": False,
     "autoCertificateMode": 0,
+    "disableDelays": False,
 }
 
 """
@@ -501,8 +502,9 @@ if not os.path.exists(installationFolder) or not os.path.exists(f"{installationF
         configFile.write(json.dumps(config)) # Write default configuration
 else:
     colorprint("Icarus Lite installation is valid.", "green")
-colorprint("Continuing in 5 seconds...", "green")
-time.sleep(5)
+if not config["disableDelays"]: # If disableDelays is false
+    colorprint("Continuing in 5 seconds...", "green")
+    time.sleep(5)
 clear()
 """
 CERTIFICATE CONFIGURATION
@@ -598,8 +600,9 @@ if certPaths["caKey"] != None and certPaths["caPem"] != None:
 else:
     colorprint("WARNING: CA bypass is active and certificates have not been validated.", "blue")
     colorprint("SUPPORT WILL NOT BE OFFERED FOR CERTIFICATES THAT CAN NOT BE VALIDATED!", "red")
-colorprint("Continuing in 5 seconds...", "green")
-time.sleep(5)
+if not config["disableDelays"]: # If disableDelays is false
+    colorprint("Continuing in 5 seconds...", "green")
+    time.sleep(5)
 clear()
 
 """
