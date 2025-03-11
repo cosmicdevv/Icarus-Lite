@@ -2,7 +2,6 @@
 Icarus Lite is a lightweight and easy-to-use version of the ChromeOS unenrollment exploit known as Icarus, which unenrolls devices with device management interception using a proxy and a custom Certificate Authority.
 > [!IMPORTANT]
 > As of 3/10/25, Icarus Lite is fully functional and works with prebuilt shims from [kxtz's file host](https://dl.kxtz.dev/ChromeOS/shims/Icarus) and/or [fanqyxl's file host](https://dl.fanqyxl.net/ChromeOS/Prebuilts/Icarus). Please use the automatic certificate downloader for best results.
-> <b>The precompiled Windows .exe currently DOES NOT WORK! Please use Icarus Lite from source.</b>
 <br>
 
 > Icarus Lite is based off the [original Icarus](https://github.com/MunyDev/icarus) code and works in the same way. Although the original Icarus is currently archived and no longer recieving support, Icarus Lite will be supported and updated.
