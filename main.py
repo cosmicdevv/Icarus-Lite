@@ -31,7 +31,7 @@ from dmbackend import device_management_pb2
 """
 GLOBAL VARIABLES
 """
-version = "1.1.12"
+version = "1.1.13"
 pInitial = 3001 # The port that MiniServers will start up from.
 latestVersionUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/version.txt" # URL of the file where the latest version number is stored
 scriptUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/main.py" # URL of the file where the latest script version is stored
@@ -63,6 +63,7 @@ class MiniServerHandler(http.server.SimpleHTTPRequestHandler):
         colorprint("GET request recieved, ignoring.\n\n", "blue")
         self.send_response(200)
         self.wfile.write(b"OK")
+        self.miniserver.stop() # Stop the server
 
     def do_POST(self):
         # Slightly rewritten part of dmbackend
@@ -100,7 +101,7 @@ class MiniServerHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(resp.SerializeToString())
         colorprint("Successfully intercepted request.\n\n", "green")
-
+        self.miniserver.stop() # Stop the server
 
 class MiniServer:
     def __init__(self):
@@ -108,7 +109,8 @@ class MiniServer:
         global pInitial
         self.port = pInitial
         handler = MiniServerHandler
-        handler.server = self
+        handler.miniserver = self # Set the handler's miniserver to the miniserver lol
+        self.stopped = False
         # Keep trying to create the server in case some ports are already in use, in which case the code will increment the port and try again.
         while True:
             try:
@@ -122,7 +124,23 @@ class MiniServer:
         context.load_cert_chain(certfile=certPaths["pem"], keyfile=certPaths["key"])
         self.httpd.socket = context.wrap_socket(self.httpd.socket, server_side=True)
         pInitial += 1
-        threading.Thread(target=self.httpd.serve_forever).start() # Start the server in a separate thread so it doesn't block the main thread.
+        self.server = threading.Thread(target=self.httpd.serve_forever, daemon=True) # Start the server in a separate thread so it doesn't block the main thread.
+        self.server.start() # Start the separate thread
+        def end_server(self):
+            i = 0
+            while i <= 15:
+                i += 1
+                if self.stopped:
+                    break
+                time.sleep(1)
+            if not self.stopped:
+                self.stop()
+        threading.Thread(target=end_server, args=(self,)).start()
+    def stop(self): # this SHOULD stop the server and the threads, PROBABLY
+        if self.httpd: # If the server is running
+            self.stopped = True
+            self.httpd.shutdown() # Shutdown the server
+            self.server.join() # wait until the thread fully stops
 
 def handle_client(client_socket, address):
     # Initial request buffer
@@ -185,11 +203,13 @@ def handle_client(client_socket, address):
         try:
             pipe = tunnel_traffic(client_socket, miniserver_socket)
             # If tunnel closed on first packet (client likely rejected connection)
-            if not pipe:
+            if not pipe: # If pipe returned false
                 colorprint("ERROR: The client may have rejected the connection. This is usually an SSL issue.", "red")
+                miniserver.stop() # Stop the MiniServer since there will not be a connection.
         except Exception as e:
             colorprint(f"ERROR on request: {str(host)}\nThe client may have rejected the connection.", "red")
             colorprint("Have you ran the Icarus shim on the target Chromebook?", "blue")
+            miniserver.stop() # Stop the MiniServer since there will not be a connection.
         return
     # The below only runs if the host isn't filtered (or it is filtered but not a TLS request, in which case we won't intercept it)
     try:
