@@ -1,15 +1,15 @@
 # Icarus-Lite
 Icarus Lite is a lightweight and easy-to-use version of the ChromeOS unenrollment exploit known as Icarus, which unenrolls devices with device management interception using a proxy and a custom Certificate Authority.
 > [!IMPORTANT]
-> As of 3/10/25, Icarus Lite is fully functional and works with prebuilt shims from [kxtz's file host](https://dl.kxtz.dev/ChromeOS/shims/Icarus) and/or [fanqyxl's file host](https://dl.fanqyxl.net/ChromeOS/Prebuilts/Icarus). Please use the automatic certificate downloader for best results.
+> As of 3/24/25, Icarus Lite is fully functional and works with prebuilt shims from [kxtz's file host](https://dl.kxtz.dev/ChromeOS/shims/Icarus) and/or [fanqyxl's file host](https://dl.fanqyxl.net/ChromeOS/Prebuilts/Icarus). Please use the automatic certificate downloader for best results.
 <br>
 
 > Icarus Lite is based off the [original Icarus](https://github.com/MunyDev/icarus) code and works in the same way. Although the original Icarus is currently archived and no longer recieving support, Icarus Lite will be supported and updated.
 ## Warnings
 > [!IMPORTANT]
-> Icarus AND Icarus Lite <b>only</b> work on ChromeOS versions between 125 and 130. If you are not in the range of compatible versions, please upgrade/downgrade to a compatible version to use Icarus."<br>
-
-- Do not use any public Icarus proxies. Icarus can be used maliciously to remotely manage and track devices. Icarus Lite is intended to be simple to use, and self-hosting Icarus is heavily advised over using any public proxies.
+> Icarus AND Icarus Lite <b>only</b> work on ChromeOS versions 125-129 <and> kernel version 4 or below (kernel version only applies if you need to change versions). If you are not in the range of compatible versions, please upgrade/downgrade to a compatible version to use Icarus.<br>
+> [!IMPORTANT]
+> <b>Do not use any public Icarus proxies.</b> Icarus can be used maliciously to remotely manage and track devices. Icarus Lite is intended to be simple to use, and self-hosting Icarus Lite is heavily advised over using any public proxies.
 - Icarus Lite does <b>NOT</b> currently have functionality to build Icarus shims. Please download a prebuilt shim to use Icarus Lite, or refer an Icarus fork for information on manually building shims.
 
 ## Dependencies
@@ -24,7 +24,7 @@ As shown in Setup Instructions, these packages can be installed simultaneously b
 
 ## Setup Instructions
 ### Windows
-If you are on Windows, you can download a pre-compiled .exe version of Icarus Lite in the "Releases" section of this repository. Alternatively, you can follow the Linux/Mac instructions below to manually build Icarus on your machine.
+If you are on Windows, you can download a pre-compiled .exe version of Icarus Lite in the "Releases" section of this repository. Alternatively, you can follow the Linux/Mac instructions below to manually run Icarus Lite on your machine.
 ### Linux/Mac
 If you are on Linux or Mac (or wish to run Icarus Lite from its source directly on Windows), the below instructions will cover how to run Icarus Lite.
 1. Open a Command Prompt/Terminal window and run ``python --version`` and/or ``python3 --version``. If the command is not found, install Python from [python.org](https://python.org/downloads) (or wherever/however is best for your OS/distro). Once Python has been installed, <b>close and re-open a new terminal.</b>
@@ -84,7 +84,10 @@ Icarus Lite has the ability to automatically generate SSL certificates with a pr
 ## Configuration
 Upon first setup, Icarus Lite will automatically create and set a ``config.json`` file which will store certain configuration options designed for debugging Icarus Lite. The file can be directly edited to store ``true`` or ``false`` values for each configuration option, and the config will be loaded the next time Icarus Lite starts.
 
-Current configuration options include:
+### What is the configuration for?
+Configuration can be ignored by most users and is designed for enhanced server hosting if you plan to host your own server to use Icarus Lite on a larger number of devices.
+
+### Configuration Options
 - ``bypassCA``: This option, if set to ``true``, will bypass Icarus Lite requiring a CA in addition to SSL certificates. It will also disable SSL certificate validation.
 - ``autoUpdate``: This option, if set to ``true``, will automatically update Icarus Lite when an update is detected and bypass asking the user yes or no.
 - ``autoCertificateMode``: This option, if set to ``1`` or ``2``, will automatically select the certificate mode and bypass asking the user for a selection. Its default value is ``0``, where it will not affect anything.
@@ -93,9 +96,10 @@ Current configuration options include:
 ## Future Updates
 This section contains planned updates to Icarus Lite to improve functionality.
 - Shim building implementation
+- fix miniservers idk why we need multiple miniservers ill change that sometime
 
 ## Credits
 - [cosmicdevv](https://github.com/cosmicdevv) - Writing and maintaining Icarus Lite
-- [kxtzownsu](https://github.com/kxtzownsu) - Maintaining certificates Icarus uses
+- [kxtzownsu](https://github.com/kxtzownsu) - Maintaining the Certificate Authority Icarus Lite uses
 - [Fanqyxl](https://github.com/fanqyxl) - Emotional support + keyrolling his chromebook lol
 - [MunyDev](https://github.com/MunyDev) - Discovering and creating original Icarus
