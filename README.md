@@ -37,7 +37,7 @@ If you are on Linux or Mac (or wish to run Icarus Lite from its source directly 
 <details>
   <summary>Icarus Lite failing to download certificates?</summary>
   
-  You will need to manually download the certificates from a proper source (recommended to use [kxtz's Icarus fork](https://git.kxtz.dev/kxtzownsu/httpmitm/src/branch/main/configs/m.google.com/public)) and place them into ``Icarus Lite/manualcerts``.
+  You will need to manually download the certificates from a proper source (recommended to use [kxtz's Icarus fork](https://git.kxtz.dev/kxtzownsu/Icarus-Lite/src/branch/main/certs)) and place them into ``Icarus Lite/manualcerts``.
 </details>
 
 ## Usage Instructions
