@@ -94,6 +94,9 @@ Configuration can be ignored by most users and is designed for enhanced server h
 - ``autoCertificateMode``: This option, if set to ``1`` or ``2``, will automatically select the certificate mode and bypass asking the user for a selection. Its default value is ``0``, where it will not affect anything.
 - ``disableDelays``: This option, if set to ``true``, will disable the 5-second delays between intialization sections of Icarus Lite.
 
+## Support
+Create a GitHub Issue on this repository for support and/or to report any issues with Icarus Lite.
+
 ## Future Updates
 This section contains planned updates to Icarus Lite to improve functionality.
 - Shim building implementation
