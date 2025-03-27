@@ -27,7 +27,7 @@ As shown in Setup Instructions, these packages can be installed simultaneously b
 ## Setup Instructions
 ### Windows
 > [!NOTE]
-> The latest pre-compiled version of Icarus Lite may not always be the latest version of the source code. If you are unable to update, try using the Linux/Mac instructions below.
+> *The latest pre-compiled version of Icarus Lite may not always be the latest version of the source code. If you are unable to update, try using the Linux/Mac instructions below.*
 
 If you are on Windows, you can download a pre-compiled .exe version of Icarus Lite in the "Releases" section of this repository. Alternatively, you can follow the Linux/Mac instructions below to manually run Icarus Lite on your machine.
 ### Linux/Mac
@@ -47,24 +47,26 @@ If you are on Linux or Mac (or wish to run Icarus Lite from its source directly 
 ## Usage Instructions
 Once Icarus Lite is running, usage is extremely simple. <b>Icarus Lite will attempt to automatically fetch your local IP when the Proxy Server starts, and will provide you with an IP and port to use. The target ChromeOS device should be on the SAME WiFi network as the device hosting the Icarus Lite server.</b>
 Using Icarus Lite on the target ChromeOS device is the same process as using normal Icarus assuming CA (Certificate Authority) has already been loaded onto the target device. The process of which you use to load the CA (Certificate Authority) onto the target device will depend on whether or not the target device is <b>keyrolled</b>.
+> [!TIP]
+> *Boards `nissa`, `dedede`, `corsola`, and `grunt` are typically keyrolled. If your device is any of the mentioned boards, you can still attempt the [Non-Keyrolled Instructions](#non-keyrolled-instructions), however if you find you are unable to run the Icarus shim, you will need to use the [Keyrolled Instructions](#keyrolled-instructions-utilizing-badapple).*
 
 ### Non-Keyrolled Instructions
 > [!WARNING]
-> These instructions apply ONLY for devices that are not keyrolled (the devices board is <b>not</b> `nissa`, `dedede`, `corsola`...)
+> *These instructions apply ONLY for devices that are not keyrolled.*
 
 On a Non-Keyrolled ChromeOS device, modified shims can be used to modify the device's Stateful Parition and load the CA (Certificate Authority) onto the device. To do this, an [Icarus shim](#shims) must be ran on the ChromeOS device (see [sh1mmer.me > <i>Executing on Chromebook</i>](https://sh1mmer.me/)).
 
 ### Keyrolled Instructions (Utilizing [BadApple](https://github.com/applefritter-inc/BadApple))
 > [!WARNING]
-> These instructions apply ONLY for keyrolled devices (devices on boards `nissa`, `dedede`, `corsola`...)
+> *These instructions apply ONLY for keyrolled devices that are not on the new ChromeOS UI (Version 2)*
 
-Using Icarus Lite on the target ChromeOS device requires utilization of [BadApple Icarus](https://github.com/applefritter-inc/BadApple-icarus) to load the CA (Certificate Authority) onto the device. To do this, a [BadApple Icarus Image](#badapple-icarus-images) must be ran on the ChromeOS device (see [BadApple Icarus Instructions](https://github.com/applefritter-inc/BadApple-icarus?tab=readme-ov-file#steps)).
+Using Icarus Lite on the target ChromeOS device requires utilization of [BadApple Icarus](https://github.com/applefritter-inc/BadApple-icarus) to load the CA (Certificate Authority) onto the device. To do this, the BadApple Icarus script must be ran on the ChromeOS device.
 
 ### Post-shim/image instructions
 > [!IMPORTANT]
-> These instructions should only be followed <b>after</b> you have used an Icarus shim or BadApple Icarus image.
+> These instructions should only be followed <b>after</b> you have used an Icarus shim or BadApple Icarus script.
 
-Once an Icarus shim/image has been used, using Icarus Lite on the target ChromeOS device is the same process as using normal Icarus. <b>The target ChromeOS device should be on the SAME WiFi network as the device hosting the Icarus Lite server.</b>
+Once an Icarus shim/script has been used, using Icarus Lite on the target ChromeOS device is the same process as using normal Icarus. <b>The target ChromeOS device should be on the SAME WiFi network as the device hosting the Icarus Lite server.</b>
 1. After rebooting into ChromeOS verified mode following using an Icarus shim, <b>do not click "continue"</b>. Instead, manually open the Network Configuration by clicking on the bottom-right icons which contain the time, WiFi, and Battery status. Once in Network Configuration, connect to your WiFi and enter the proxy settings.
 2. Set "Connection Type" to Manual
 3. Set the "Secure HTTP" IP address to the IP Icarus Lite gives you
@@ -82,30 +84,16 @@ Once an Icarus shim/image has been used, using Icarus Lite on the target ChromeO
   - It is also important to note being above ChromeOS v130 or below ChromeOS v125 will cause the target ChromeOS device to reject the connection to the MiniServer, causing the "Can't reach Google" screen.
 </details>
 
-## Prebuilt File Downloads
-> [!NOTE]
-> These downloads are <b>NOT</b> for Icarus Lite precompiled releases, and are for shims/images instead.
-
-Icarus Lite only replaces the server functionality of Icarus, but for Icarus to successfully unenroll a ChromeOS device, that device still must have had Icarus's custom CA (Certificate Authority) loaded onto it. The method to which said CA Is loaded onto the device depends on whether or not the device is keyrolled, but regardless, users must download and flash images to a USB drive.
-
-### Shims
+## Prebuilt Shim Downloads
+Icarus Lite only replaces the server functionality of Icarus, but for Icarus to successfully unenroll a ChromeOS device, that device still must have had Icarus's custom CA (Certificate Authority) loaded onto it. The method to which said CA Is loaded onto the device depends on whether or not the device is keyrolled. For non-keyrolled devices, users must use a shim file flashed to a USB drive to modify the devices Stateful Partition.
 > [!WARNING]
-> Shims <b>only</b> work on devices that are not keyrolled.
+> *Shims <b>only</b> work on devices that are not keyrolled.*
 
 Icarus Lite does not currently have the functionality to build shims, so users must either use prebuilt shims or build their own shims from Icarus's original source. Instructions on building shims, along with a maintained fork of Icarus, can be found [here](https://github.com/fanqyxl/icarus?tab=readme-ov-file#setup-and-installation-instructions).
 
 For prebuilt shims, it is recommended to download them from the below servers:
 - [kxtz's download server](https://dl.kxtz.dev/)
 - [fanqyxl's download server](https://dl.fanqyxl.net/)
-
-### BadApple Icarus Images
-> [!WARNING]
-> Normal BadApple Images <b>only</b> work on devices that are keyrolled.
-
-Icarus Lite does not have the functionality to build BadApple images, so useres must either use prebuilt images or build their own images from [BadApple Icarus's](https://github.com/applefritter-inc/BadApple-icarus) GitHub repository, where instructions on building and usage can be found.
-
-For prebuilt images, it is recommended to download them from the below link:
-- [BadApple Releases](https://github.com/applefritter-inc/BadApple-icarus/releases/latest)
 
 ## SSL Certificates
 In order for the client (target ChromeOS device) to establish a proper connection to the MiniSever, we need an SSL certificate to establish the secure tunnel. If the SSL certificate is invalid, the target device will reject the connection (which in most cases will bring you to a "Cannot reach Google" screen). Icarus uses a custom CA (Certificate Authority) which isn't trusted to external devices, which also means any SSL certificates generated from our custom CA will also not be trusted to external devices. This causes most devices (including any ChromeOS devices) to reject the connection because of the untrusted CA.
