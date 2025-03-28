@@ -70,7 +70,7 @@ If [Icarus-Lite-BadApple](https://github.com/cosmicdevv/Icarus-Lite-BadApple) do
 
 ### Post-shim/image instructions
 > [!IMPORTANT]
-> These instructions should only be followed <b>after</b> you have used an Icarus shim or BadApple Icarus script.
+> *These instructions should only be followed <b>after</b> you have used an Icarus shim or BadApple Icarus script.*
 
 Once an Icarus shim/script has been used, using Icarus Lite on the target ChromeOS device is the same process as using normal Icarus. <b>The target ChromeOS device should be on the SAME WiFi network as the device hosting the Icarus Lite server.</b>
 1. After rebooting into ChromeOS verified mode following using an Icarus shim, <b>do not click "continue"</b>. Instead, manually open the Network Configuration by clicking on the bottom-right icons which contain the time, WiFi, and Battery status. Once in Network Configuration, connect to your WiFi and enter the proxy settings.
