@@ -91,9 +91,10 @@ Once an Icarus shim/script has been used, using Icarus Lite on the target Chrome
 </details>
 
 ## Prebuilt Shim Downloads
-Icarus Lite only replaces the server functionality of Icarus, but for Icarus to successfully unenroll a ChromeOS device, that device still must have had Icarus's custom CA (Certificate Authority) loaded onto it. The method to which said CA Is loaded onto the device depends on whether or not the device is keyrolled. For non-keyrolled devices, users must use a shim file flashed to a USB drive to modify the devices Stateful Partition.
 > [!WARNING]
 > *Shims <b>only</b> work on devices that are not keyrolled.*
+
+Icarus Lite only replaces the server functionality of Icarus, but for Icarus to successfully unenroll a ChromeOS device, that device still must have had Icarus's custom CA (Certificate Authority) loaded onto it. The method to which said CA Is loaded onto the device depends on whether or not the device is keyrolled. For non-keyrolled devices, users must use a shim file flashed to a USB drive to modify the devices Stateful Partition.
 
 Icarus Lite does not currently have the functionality to build shims, so users must either use prebuilt shims or build their own shims from Icarus's original source. Instructions on building shims, along with a maintained fork of Icarus, can be found [here](https://github.com/fanqyxl/icarus?tab=readme-ov-file#setup-and-installation-instructions).
 
