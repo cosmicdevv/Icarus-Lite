@@ -54,7 +54,7 @@ Using Icarus Lite on the target ChromeOS device is the same process as using nor
 > [!WARNING]
 > *These instructions apply ONLY for devices that are not keyrolled.*
 
-On a Non-Keyrolled ChromeOS device, modified shims can be used to modify the device's Stateful Parition and load the CA (Certificate Authority) onto the device. To do this, an [Icarus shim](#shims) must be ran on the ChromeOS device (see [sh1mmer.me > <i>Executing on Chromebook</i>](https://sh1mmer.me/)).
+On a Non-Keyrolled ChromeOS device, modified shims can be used to modify the device's Stateful Parition and load the CA (Certificate Authority) onto the device. To do this, an [Icarus shim](#prebuilt-shim-downloads) must be ran on the ChromeOS device (see [sh1mmer.me > <i>Executing on Chromebook</i>](https://sh1mmer.me/)).
 
 ### Keyrolled Instructions (Utilizing [BadApple](https://github.com/applefritter-inc/BadApple))
 > [!WARNING]
