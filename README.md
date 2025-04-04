@@ -3,7 +3,7 @@ Icarus Lite is a lightweight and easy-to-use version of the ChromeOS unenrollmen
 
 Icarus Lite is based off the [original Icarus](https://github.com/MunyDev/icarus) code and works in the same way. Although the original Icarus is currently archived and no longer recieving support, Icarus Lite will be supported and updated.
 > [!NOTE]
-> As of 3/24/25, Icarus Lite is fully functional and works with prebuilt shims from [kxtz's file host](https://dl.kxtz.dev/ChromeOS/shims/Icarus) and/or [fanqyxl's file host](https://dl.fanqyxl.net/ChromeOS/Preb<uilts/Icarus). Please use the automatic certificate downloader for best results.
+> As of 4/4/25, Icarus Lite is fully functional and works with prebuilt shims from [kxtz's file host](https://dl.kxtz.dev/ChromeOS/shims/Icarus) and/or [fanqyxl's file host](https://dl.fanqyxl.net/ChromeOS/Preb<uilts/Icarus). Please use the automatic certificate downloader for best results.
 ## Warnings
 > [!CAUTION]
 > <b>Do not use any public Icarus proxies.</b> Icarus can be used maliciously to remotely manage and track devices. Icarus Lite is intended to be simple to use, and self-hosting Icarus Lite is heavily advised over using any public proxies.
