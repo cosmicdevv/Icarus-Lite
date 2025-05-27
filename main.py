@@ -34,7 +34,7 @@ from dmbackend import device_management_pb2
 """
 GLOBAL VARIABLES
 """
-version = "1.1.13"
+version = "1.1.14"
 pInitial = 3001 # The port that MiniServers will start up from.
 latestVersionUrl = "https://raw.githubusercontent.com/HarryJarry1/Icarus-Lite/refs/heads/main/version.txt" # URL of the file where the latest version number is stored
 scriptUrl = "https://raw.githubusercontent.com/HarryJarry1/Icarus-Lite/refs/heads/main/main.py" # URL of the file where the latest script version is stored
@@ -51,7 +51,7 @@ config = {
     "bypassCA": False,
     "autoUpdate": False,
     "autoCertificateMode": 0,
-    "disableDelays": False,
+    "disableDelays": True,
 }
 
 """
