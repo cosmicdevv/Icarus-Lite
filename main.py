@@ -561,7 +561,7 @@ if choice == 1: # If they selected to automatically download certificates
             if firstTime:
                 # Create a backup copy of the certificate in the manualcerts folder
                 shutil.copy(f"{installationFolder}/autocerts/{sslCert}", f"{installationFolder}/manualcerts/{sslCert}")
-            colorprint(f"Latest '{sslCert}' downloaded. (from github)", "green")
+            colorprint(f"Latest '{sslCert}' downloaded.", "green")
         except Exception as e:
             # If the download fails
             success = False
