@@ -2,9 +2,6 @@
 Icarus Lite
 Written by cosmicdevv
 https://github.com/cosmicdevv/Icarus-Lite
-
-certs hosted by HarryJarry1
-https://github.com/HarryJarry1/Icarus-Lite
 """
 import warnings
 # If on 32 bit Python, ignore Cryptography warnings (they're annoying)
