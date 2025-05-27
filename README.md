@@ -34,7 +34,7 @@ If you are on Windows, you can download a pre-compiled .exe version of Icarus Li
 If you are on Linux or Mac (or wish to run Icarus Lite from its source directly on Windows), the below instructions will cover how to run Icarus Lite.
 1. Open a Command Prompt/Terminal window and run ``python --version`` and/or ``python3 --version``. If the command is not found, install Python from [python.org](https://python.org/downloads) (or wherever/however is best for your OS/distro). Once Python has been installed, <b>close and re-open a new terminal.</b>
 2. Run ``git --version``. If the command is not found, install Git from [git-scm.com](https://git-scm.com/downloads) (or wherever/however is best for your OS/distro). Once Git has been installed, <b>close and re-open a new terminal.</b>
-3. In whichever directory you want to copy Icarus Lite into, run ``git clone https://github.com/cosmicdevv/Icarus-Lite.git``, then run ``cd Icarus-Lite``.
+3. In whichever directory you want to copy Icarus Lite into, run ``git clone https://github.com/HarryJarry1/Icarus-Lite.git``, then run ``cd Icarus-Lite``.
 4. Install all Python package dependencies, which can be done by running ``pip install -r requirements.txt``/``pip3 install -r requirements.txt``. On some Linux distros (specifically in managed environments), pip may not work correctly, in which case you may need to use ``sudo apt install python3-protobuf python3-requests python3-openssl python3-cryptography``.
 5. Run ``python main.py`` and/or ``python3 main.py``.
 6. Icarus Lite will attempt to automatically set up the required file structure and download the latest SSL certificates from kxtz's Icarus fork.

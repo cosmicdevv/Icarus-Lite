@@ -2,6 +2,9 @@
 Icarus Lite
 Written by cosmicdevv
 https://github.com/cosmicdevv/Icarus-Lite
+
+certs hosted by HarryJarry1
+https://github.com/HarryJarry1/Icarus-Lite
 """
 import warnings
 # If on 32 bit Python, ignore Cryptography warnings (they're annoying)
@@ -33,13 +36,13 @@ GLOBAL VARIABLES
 """
 version = "1.1.13"
 pInitial = 3001 # The port that MiniServers will start up from.
-latestVersionUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/version.txt" # URL of the file where the latest version number is stored
-scriptUrl = "https://raw.githubusercontent.com/cosmicdevv/Icarus-Lite/refs/heads/main/main.py" # URL of the file where the latest script version is stored
+latestVersionUrl = "https://raw.githubusercontent.com/HarryJarry1/Icarus-Lite/refs/heads/main/version.txt" # URL of the file where the latest version number is stored
+scriptUrl = "https://raw.githubusercontent.com/HarryJarry1/Icarus-Lite/refs/heads/main/main.py" # URL of the file where the latest script version is stored
 sslCerts = {
-    "google.com.key": "https://git.kxtz.dev/kxtzownsu/Icarus-Lite/raw/branch/main/certs/google.com.key",
-    "google.com.pem": "https://git.kxtz.dev/kxtzownsu/Icarus-Lite/raw/branch/main/certs/google.com.pem",
-    "myCA.pem": "https://git.kxtz.dev/kxtzownsu/Icarus-Lite/raw/branch/main/myCA.pem",
-    "myCA.key": "https://git.kxtz.dev/kxtzownsu/Icarus-Lite/raw/branch/main/myCA.key"
+    "google.com.key": "https://raw.githubusercontent.com/HarryJarry1/Icarus-Lite/refs/heads/certs/google.com.key",
+    "google.com.pem": "https://raw.githubusercontent.com/HarryJarry1/Icarus-Lite/refs/heads/certs/google.com.pem",
+    "myCA.pem": "https://raw.githubusercontent.com/HarryJarry1/Icarus-Lite/refs/heads/certs/myCA.pem",
+    "myCA.key": "https://raw.githubusercontent.com/HarryJarry1/Icarus-Lite/refs/heads/certs/myCA.key"
 } # Stores names and links of certificates to download
 certPaths = {} # Stores paths of certificates on the local filesystem
 installationFolder = "IcarusLite" # Folder name that stores certificates
@@ -561,7 +564,7 @@ if choice == 1: # If they selected to automatically download certificates
             if firstTime:
                 # Create a backup copy of the certificate in the manualcerts folder
                 shutil.copy(f"{installationFolder}/autocerts/{sslCert}", f"{installationFolder}/manualcerts/{sslCert}")
-            colorprint(f"Latest '{sslCert}' downloaded.", "green")
+            colorprint(f"Latest '{sslCert}' downloaded. (from github)", "green")
         except Exception as e:
             # If the download fails
             success = False
