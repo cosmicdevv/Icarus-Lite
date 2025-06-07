@@ -3,16 +3,13 @@ Icarus Lite is a lightweight and easy-to-use version of the ChromeOS unenrollmen
 
 Icarus Lite is based off the [original Icarus](https://github.com/MunyDev/icarus) code and works in the same way. Although the original Icarus is currently archived and no longer recieving support, Icarus Lite will be supported and updated.
 > [!NOTE]
-> As of 6/5/25, Icarus Lite is fully functional and works with prebuilt shims from [fanqyxl's file host](https://dl.fanqyxl.net/ChromeOS/Preb<uilts/Icarus). Please use the automatic certificate downloader for best results.
+> As of 6/7/25, Icarus Lite is fully functional and works with Sh1mmer shims from [fanqyxl's file host](https://dl.fanqyxl.net/ChromeOS/Prebuilts/Sh1mmer/) using the [Icarus payload](https://github.com/MercuryWorkshop/sh1mmer?tab=readme-ov-file#icarus). Please use the automatic certificate downloader for best results.
 ## Warnings
 > [!CAUTION]
 > <b>Do not use any public Icarus proxies.</b> Icarus can be used maliciously to remotely manage and track devices. Icarus Lite is intended to be simple to use, and self-hosting Icarus Lite is heavily advised over using any public proxies.
 
 > [!WARNING]
 > Icarus AND Icarus Lite <b>only</b> work on ChromeOS versions 125-129 <and> kernel version 4 or below (kernel version only applies if you need to change versions). If you are not in the range of compatible versions, please upgrade/downgrade to a compatible version to use Icarus.
-
-> [!NOTE]
-> Icarus Lite does <b>NOT</b> currently have functionality to build Icarus shims. Please download a prebuilt shim to use Icarus Lite, or refer an Icarus fork for information on manually building shims.
 
 ## Dependencies
 Using the Windows pre-compiled .exe version of Icarus Lite, you will not need to worry about dependencies as they are packaged with the .exe. Icarus Lite uses:
@@ -37,11 +34,11 @@ If you are on Linux or Mac (or wish to run Icarus Lite from its source directly 
 3. In whichever directory you want to copy Icarus Lite into, run ``git clone https://github.com/cosmicdevv/Icarus-Lite.git``, then run ``cd Icarus-Lite``.
 4. Install all Python package dependencies, which can be done by running ``pip install -r requirements.txt``/``pip3 install -r requirements.txt``. On some Linux distros (specifically in managed environments), pip may not work correctly, in which case you may need to use ``sudo apt install python3-protobuf python3-requests python3-openssl python3-cryptography``.
 5. Run ``python main.py`` and/or ``python3 main.py``.
-6. Icarus Lite will attempt to automatically set up the required file structure and download the latest SSL certificates from kxtz's Icarus fork.
+6. Icarus Lite will attempt to automatically set up the required file structure and download the latest SSL certificates from the Icarus-Lite-Certs repo.
 <details>
   <summary>Icarus Lite failing to download certificates?</summary>
   
-  You will need to manually download the certificates from a proper source (recommended to use [kxtz's Icarus fork](https://git.kxtz.dev/kxtzownsu/Icarus-Lite/src/branch/main/certs)) and place them into ``Icarus Lite/manualcerts``.
+  You will need to manually download the certificates from a proper source (recommended to use [the Icarus-Lite-Certs repo](https://github.com/cosmicdevv/Icarus-Lite-Certs)) and place them into ``Icarus Lite/manualcerts``.
 </details>
 
 ## Usage Instructions
@@ -111,7 +108,7 @@ When a shim has been built using a different CA than the SSL certificates, the t
 
 ### Generating SSL certificates
 Icarus Lite has the ability to automatically generate SSL certificates with a provided CA (Certificate Authority). The process is relatively simple:
-1. Generate your CA (you must have a key and pem) or use an [existing CA](https://git.kxtz.dev/kxtzownsu/Icarus-Lite).
+1. Generate your CA (you must have a key and pem) or use an [existing CA](https://github.com/cosmicdevv/Icarus-Lite-Certs).
 2. Put your CA (key and pem) into ``IcarusLite/manualcerts`` with the names ``myCA.pem`` and ``myCA.key``.
 3. In ``IcarusLite/manualcerts``, create two empty files named ``google.com.pem`` and ``google.com.key``.
 4. Run Icarus Lite and when prompted to select certificate options, select option 1 (Use manual certificates).
@@ -139,7 +136,6 @@ Create a GitHub Issue on this repository for support and/or to report any issues
 
 ## Future Updates
 This section contains planned updates to Icarus Lite to improve functionality.
-- Shim building implementation
 - fix miniservers idk why we need multiple miniservers ill change that sometime
 
 ## Credits
