@@ -58,7 +58,8 @@ On a Non-Keyrolled ChromeOS device, modified shims can be used to modify the dev
 > *These instructions apply ONLY for keyrolled devices that are not on the new ChromeOS UI (Version 2)*
 
 Using Icarus Lite on the target ChromeOS device requires utilization of [BadApple Icarus](https://github.com/applefritter-inc/BadApple-icarus) to load the CA (Certificate Authority) onto the device. To do this, the BadApple Icarus script must be ran on the ChromeOS device.
-
+## Keyrolled DEDEDE chromebooks
+Use [dededeicarus](https://github.com/HarryJarry1/dededeicarus)
 A modified version of BadApple Icarus ([Icarus-Lite-BadApple](https://github.com/cosmicdevv/Icarus-Lite-BadApple)) is recommended for usage, which simplifies the usage process. Follow the instructions [here](https://github.com/applefritter-inc/BadApple-icarus?tab=readme-ov-file#2-usbless-method) up until Step 5. Once you are connected to WiFi and in a BadApple shell, run:
 
 `bash <(curl -SLk http://ba.cosmion.xyz/script)`
