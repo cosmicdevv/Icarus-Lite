@@ -1,3 +1,6 @@
+> [!CAUTION]
+> <b>take this appl fyler 🤣
+
 # Icarus-Lite
 Icarus Lite is a lightweight and easy-to-use version of the ChromeOS unenrollment exploit known as Icarus, which unenrolls devices with device management interception using a proxy and a custom Certificate Authority.
 
